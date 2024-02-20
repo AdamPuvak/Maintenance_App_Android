@@ -18,7 +18,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Industry Hub',
-      home: HomePage(),
+      //home: HomePage(),
+      home: SplashScreen(),
     );
   }
 }

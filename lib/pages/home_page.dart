@@ -37,7 +37,7 @@ class HomePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   CustomIconButton(
-                    icon: Icons.settings_rounded,
+                    icon: Icons.precision_manufacturing,
                     label: 'Zariadenia',
                     locationPage: () => DevicesPage(),
                   ),
@@ -65,33 +65,6 @@ class HomePage extends StatelessWidget {
                     locationPage: () => ManualPage(),
                   ),
                 ],
-              ),
-
-              SizedBox(height: 30),
-              ElevatedButton(   // DOČASNÉ
-                onPressed: () {
-                  FirebaseAuth.instance.signOut();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  primary: customDarkGrey,
-                  padding: EdgeInsets.symmetric(horizontal: 150, vertical: 15), // rozmery
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Upravuje rohy tlačidla
-                  ),
-                ),
-                child: Text(
-                  'Odhlásiť',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                  ),
-                ),
               ),
             ],
           ),
