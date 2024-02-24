@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:maintenace/login/customInputField.dart';
-import '../firebase_auth_implementation/firebase_auth_services.dart';
-import '../pages/home_page.dart';
+import 'firebase_auth_services.dart';
+import '../main_pages/home_page.dart';
 import '/login/sign_up_page.dart';
 import '/utilities/globalVar.dart';
 

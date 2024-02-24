@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:maintenace/pages/edit_profile_page.dart';
+import 'package:maintenace/app_bar/edit_profile_page.dart';
 import '../login/login_page.dart';
 import '../utilities/globalVar.dart';
 import '/custom_widgets/customAppBar.dart';
@@ -11,9 +11,9 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CustomAppBar(),
-        body:
-        Container(
+      appBar: CustomAppBar(),
+      body: Center(
+        child: Container(
           margin: EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
@@ -36,12 +36,12 @@ class SettingsPage extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: customLightGrey,
-                  padding: EdgeInsets.symmetric(horizontal: 126, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  side: BorderSide(color: customDarkGrey)
+                    primary: customLightGrey,
+                    padding: EdgeInsets.symmetric(horizontal: 126, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    side: BorderSide(color: customDarkGrey)
                 ),
                 child: Text(
                   'Upraviť profil',
@@ -81,13 +81,10 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
               ),
-
-              Row(
-              ),
-
             ],
           ),
         )
+      )
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:maintenace/firebase_options.dart';
 
-import 'package:maintenace/pages/home_page.dart';
+import 'package:maintenace/main_pages/home_page.dart';
 import 'package:maintenace/login/splash_screen.dart';
 import 'package:maintenace/login/login_page.dart';
 import 'package:maintenace/login/sign_up_page.dart';

@@ -4,10 +4,10 @@ import 'package:maintenace/login/login_page.dart';
 import '/utilities/globalVar.dart';
 import '/custom_widgets/customAppBar.dart';
 import '/custom_widgets/customIconButton.dart';
-import '/pages/devices_page.dart';
-import '/pages/schedule_page.dart';
-import '/pages/records_page.dart';
-import '/pages/manual_page.dart';
+import '../devices_page/devices_page.dart';
+import '/main_pages/schedule_page.dart';
+import '/main_pages/records_page.dart';
+import '/main_pages/manual_page.dart';
 
 
 class HomePage extends StatelessWidget {
@@ -17,8 +17,8 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(),
-      body:
-        Container(
+      body: Center(
+        child: Container(
           margin: EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
@@ -68,7 +68,8 @@ class HomePage extends StatelessWidget {
               ),
             ],
           ),
-        )
+        ),
+      )
     );
   }
 }

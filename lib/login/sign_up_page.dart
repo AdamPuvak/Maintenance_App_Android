@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '/pages/home_page.dart';
+import '/main_pages/home_page.dart';
 import '/login/customInputField.dart';
 import '/login/login_page.dart';
 import '/utilities/globalVar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '/firebase_auth_implementation/firebase_auth_services.dart';
+import 'firebase_auth_services.dart';
 
 
 
