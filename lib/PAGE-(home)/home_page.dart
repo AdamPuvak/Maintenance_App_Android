@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:maintenace/login/login_page.dart';
+import 'package:maintenace/PAGE-(workplace)/workplace_page.dart';
+import '../PAGE-(devices)/devices_page.dart';
+import '../app-bar/customAppBar.dart';
 import '/utilities/globalVar.dart';
-import '/custom_widgets/customAppBar.dart';
-import '/custom_widgets/customIconButton.dart';
-import '../devices_page/devices_page.dart';
+import 'customIconButton.dart';
 import '/main_pages/schedule_page.dart';
 import '/main_pages/records_page.dart';
 import '/main_pages/manual_page.dart';
@@ -37,14 +36,14 @@ class HomePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   CustomIconButton(
+                    icon: Icons.engineering,
+                    label: 'Pracovisko',
+                    locationPage: () => WorkplacePage(),
+                  ),
+                  CustomIconButton(
                     icon: Icons.precision_manufacturing,
                     label: 'Zariadenia',
                     locationPage: () => DevicesPage(),
-                  ),
-                  CustomIconButton(
-                    icon: Icons.checklist,
-                    label: 'Plán',
-                    locationPage: () => SchedulePage(),
                   ),
                 ],
               ),
@@ -55,10 +54,23 @@ class HomePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   CustomIconButton(
+                    icon: Icons.checklist,
+                    label: 'Plán',
+                    locationPage: () => SchedulePage(),
+                  ),
+                  CustomIconButton(
                     icon: Icons.description,
                     label: 'Záznamy',
                     locationPage: () => RecordsPage(),
                   ),
+                ],
+              ),
+
+              SizedBox(height: 30),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
                   CustomIconButton(
                     icon: Icons.help,
                     label: 'Manuál',

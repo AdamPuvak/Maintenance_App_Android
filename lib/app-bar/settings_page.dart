@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:maintenace/app_bar/edit_profile_page.dart';
 import '../login/login_page.dart';
 import '../utilities/globalVar.dart';
-import '/custom_widgets/customAppBar.dart';
+import 'customAppBar.dart';
+import 'edit_profile_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

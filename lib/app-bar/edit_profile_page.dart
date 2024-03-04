@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../custom_widgets/customAppBar.dart';
+import 'customAppBar.dart';
 
 
 class EditProfilePage extends StatelessWidget {

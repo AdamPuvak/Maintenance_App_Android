@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/main_pages/home_page.dart';
+import '../PAGE-(home)/home_page.dart';
 import '/login/customInputField.dart';
 import '/login/login_page.dart';
 import '/utilities/globalVar.dart';

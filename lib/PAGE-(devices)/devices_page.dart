@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:maintenace/custom_widgets/customAppBar.dart';
-import 'package:maintenace/main_pages/home_page.dart';
+import 'package:maintenace/PAGE-(home)/home_page.dart';
 import 'package:maintenace/utilities/globalVar.dart';
+import '../app-bar/customAppBar.dart';
 import 'device.dart';
+import 'device_detail.dart';
 
 class DevicesPage extends StatefulWidget {
   DevicesPage({Key? key}) : super(key: key);
@@ -13,12 +14,12 @@ class DevicesPage extends StatefulWidget {
 
 class _DevicesPageState extends State<DevicesPage> {
   final List<Device> devices = [
-    Device(name: 'KR ZVAR', imageUrl: 'images/zvar.jpg', info: '- info o zariadení'),
-    Device(name: 'KR MAN 1', imageUrl: 'images/MAN_1.jpg', info: '- info o zariadení'),
-    Device(name: 'KR MAN 2', imageUrl: 'images/MAN_2.jpg', info: '- info o zariadení'),
-    Device(name: 'Magicwave', imageUrl: 'images/question.png', info: '- info o zariadení'),
-    Device(name: 'Nástrojový stojan', imageUrl: 'images/drziak.jpg', info: '- info o zariadení'),
-    Device(name: 'Fotoneo snímače', imageUrl: 'images/senzor.jpg', info: '- info o zariadení'),
+    Device(name: 'KR ZVAR', imageUrl: 'images/zvar.jpg', info1: 'KUKA KR60', info2: 'rok výroby: 2018', info3: 'maximálne zaťaženie: 60kg'),
+    Device(name: 'KR MAN 1', imageUrl: 'images/MAN_1.jpg', info1: 'KUKA KR120', info2: 'rok výroby: 2018', info3: 'maximálne zaťaženie: 120kg'),
+    Device(name: 'KR MAN 2', imageUrl: 'images/MAN_2.jpg', info1: 'KUKA KR120', info2: 'rok výroby: 2018', info3: 'maximálne zaťaženie: 120kg'),
+    Device(name: 'Magicwave', imageUrl: 'images/magicwave.jpg', info1: 'FRONIUS MagicWave4000', info2: 'rok výroby: 2018', info3: 'maximálný prúd: 500A'),
+    Device(name: 'Fotoneo skenery', imageUrl: 'images/skener.jpg', info1: 'Photoneo Phoxi 3D', info2: 'rok výroby: 2017', info3: 'veľkosť: L'),
+    Device(name: 'Nástrojový stojan', imageUrl: 'images/drziak.jpg', info1: 'Shunk', info2: 'na stlačený vzduch', info3: ''),
   ];
 
   late List<bool> showDetails;
@@ -105,15 +106,7 @@ class _DevicesPageState extends State<DevicesPage> {
                               ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(height: 15,),
-                                Text(
-                                  devices[index].info,
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                  ),
-                                ),
-
-                                SizedBox(height: 15,),
+                                SizedBox(height: 25,),
 
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -157,9 +150,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                   ],
                                 ),
 
-
-
-                                SizedBox(height: 15,),
+                                SizedBox(height: 25,),
 
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -168,7 +159,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                       onTap: () {
                                         Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (context) => HomePage()),
+                                          MaterialPageRoute(builder: (context) => DeviceDetail(device: devices[index])),
                                         );
                                       },
                                       child: Text(

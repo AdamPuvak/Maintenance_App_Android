@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/custom_widgets/customAppBar.dart';
+import '../app-bar/customAppBar.dart';
 import '/utilities/globalVar.dart';
 
 class SchedulePage extends StatelessWidget {
