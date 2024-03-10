@@ -12,6 +12,7 @@ import '/main_pages/manual_page.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,6 +77,10 @@ class HomePage extends StatelessWidget {
                     label: 'Manuál',
                     locationPage: () => ManualPage(),
                   ),
+                  /*ElevatedButton(
+                    onPressed: () => takeData(context),
+                    child: Text("KLIK"),
+                  ),*/
                 ],
               ),
             ],

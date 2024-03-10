@@ -6,6 +6,7 @@ import 'package:maintenace/PAGE-(home)/home_page.dart';
 import 'package:maintenace/login/splash_screen.dart';
 import 'package:maintenace/login/login_page.dart';
 import 'package:maintenace/login/sign_up_page.dart';
+import 'package:maintenace/utilities/temp.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Industry Hub',
       home: HomePage(),
+      //home: Temp(),
       //home: SplashScreen(),
     );
   }
