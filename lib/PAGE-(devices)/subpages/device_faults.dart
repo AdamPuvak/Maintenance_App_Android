@@ -1,44 +1,30 @@
+import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../app-bar/customAppBar.dart';
-import '../../utilities/globalVar.dart';
-import '../device.dart';
-import '../part.dart';
 import 'package:intl/intl.dart';
 
+import '../../app-bar/customAppBar.dart';
+import '../../utilities/globalVar.dart';
 
-class PartMaintenance extends StatefulWidget {
-  final Device device;
-  final String partId;
 
-  const PartMaintenance({
+class DeviceFaults extends StatefulWidget {
+  final device;
+
+  const DeviceFaults({
     super.key,
-    required this.device,
-    required this.partId,
+    this.device
   });
 
   @override
-  State<PartMaintenance> createState() => _PartMaintenanceState();
+  State<DeviceFaults> createState() => _DeviceFaultsState();
 }
 
-class _PartMaintenanceState extends State<PartMaintenance> {
-  late Part part;
+class _DeviceFaultsState extends State<DeviceFaults> {
   TextEditingController _dateController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _workerController = TextEditingController();
+  bool isRepaired = false;
   bool _isDateErrorVisible = false;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchPartData();
-  }
-
-  @override
-  void dispose() {
-    _dateController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +55,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                 ),
                 Spacer(),
                 Text(
-                  'Údržba',
+                  'Poruchy',
                   style: TextStyle(
                     fontSize: 26,
                     color: customSuperLightGrey,
@@ -81,17 +67,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
           ),
 
           SizedBox(height: 30),
-
-          Text(
-              part.name,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-              )
-          ),
-
-          SizedBox(height: 10),
-
+          
           Container(
             height: 400,
             width: 380,
@@ -108,9 +84,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                 future: FirebaseFirestore.instance
                     .collection('devices')
                     .doc(widget.device.id)
-                    .collection('parts')
-                    .doc(widget.partId)
-                    .collection('maintenances')
+                    .collection('faults')
                     .orderBy('date', descending: true)
                     .get(),
                 builder: (context, snapshot) {
@@ -123,8 +97,8 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                     return ListView.builder(
                       itemCount: documents.length,
                       itemBuilder: (context, index) {
-                        final maintenance = documents[index];
-                        final date = maintenance['date'].toDate();
+                        final fault = documents[index];
+                        final date = fault['date'].toDate();
                         final formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(date);
 
                         return Container(
@@ -149,9 +123,17 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                               TextSpan(text: 'Dátum: ', style: TextStyle(fontWeight: FontWeight.bold,)),
                                               TextSpan(text: '$formattedDate\n'),
                                               TextSpan(text: 'Popis: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                              TextSpan(text: '${maintenance['description']}\n'),
+                                              TextSpan(text: '${fault['description']}\n'),
                                               TextSpan(text: 'Pracovník: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                              TextSpan(text: '${maintenance['worker']}'),
+                                              TextSpan(text: '${fault['worker']}\n'),
+                                              TextSpan(text: 'Stav: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                              TextSpan(
+                                                text: fault['isRepaired'] ? 'Opravená' : 'Neopravená',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: fault['isRepaired'] ? Colors.green : Colors.red,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -167,11 +149,11 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                         builder: (BuildContext context) {
                                           return StatefulBuilder(
                                             builder: (BuildContext context, StateSetter setState) {
-                                              DateTime existingDate = maintenance['date'].toDate();
+                                              DateTime existingDate = fault['date'].toDate();
                                               String formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(existingDate);
-                                              String existingDescription = maintenance['description'];
-                                              String existingWorker = maintenance['worker'];
-
+                                              String existingDescription = fault['description'];
+                                              String existingWorker = fault['worker'];
+                                              isRepaired = fault['isRepaired'];
 
                                               _dateController.text = formattedDate;
                                               _descriptionController.text = existingDescription;
@@ -181,7 +163,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                                 title: Text('Upraviť záznam'),
                                                 content: Container(
                                                   width: 300,
-                                                  height: 250,
+                                                  height: 300,
                                                   child: Column(
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: <Widget>[
@@ -243,6 +225,23 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                                           ),
                                                         ),
                                                       ),
+                                                      DropdownButtonFormField<bool>(
+                                                        value: isRepaired,
+                                                        onChanged: (newValue) {
+                                                          isRepaired = newValue!;
+                                                          updateIsRepaired(newValue);
+                                                        },
+                                                        items: [
+                                                          DropdownMenuItem(
+                                                            value: true,
+                                                            child: Text('Opravená'),
+                                                          ),
+                                                          DropdownMenuItem(
+                                                            value: false,
+                                                            child: Text('Neopravená'),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
@@ -253,15 +252,13 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                                         await FirebaseFirestore.instance
                                                             .collection('devices')
                                                             .doc(widget.device.id)
-                                                            .collection('parts')
-                                                            .doc(widget.partId)
-                                                            .collection('maintenances')
-                                                            .doc(maintenance.id)
+                                                            .collection('faults')
+                                                            .doc(fault.id)
                                                             .delete();
 
-                                                        Navigator.of(context).pop();
+                                                        await refreshData();
 
-                                                        await fetchPartData();
+                                                        Navigator.of(context).pop();
 
                                                       } catch (error) {
                                                         print('Chyba při mazání záznamu: $error');
@@ -284,6 +281,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                                       ),
                                                     ),
                                                   ),
+
                                                   TextButton(
                                                     onPressed: () async {
                                                       setState(() {
@@ -300,19 +298,18 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                                         await FirebaseFirestore.instance
                                                             .collection('devices')
                                                             .doc(widget.device.id)
-                                                            .collection('parts')
-                                                            .doc(widget.partId)
-                                                            .collection('maintenances')
-                                                            .doc(maintenance.id)
+                                                            .collection('faults')
+                                                            .doc(fault.id)
                                                             .update({
                                                           'date': timestamp,
                                                           'description': description,
                                                           'worker': worker,
+                                                          'isRepaired': isRepaired,
                                                         });
 
                                                         Navigator.of(context).pop();
 
-                                                        await fetchPartData();
+                                                        await refreshData();
 
                                                       } catch (error) {
                                                         print('Chyba pri aktualizácií záznamu: $error');
@@ -335,6 +332,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                                       ),
                                                     ),
                                                   ),
+
                                                 ],
                                               );
                                             },
@@ -362,161 +360,161 @@ class _PartMaintenanceState extends State<PartMaintenance> {
 
           SizedBox(height: 20),
 
-          //------------------------------ Create maintenance
           ElevatedButton(
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState) {
-                      _dateController.text = "";
-                      _descriptionController.text = "";
-                      _workerController.text = "";
-                      return AlertDialog(
-                        title: Text(
-                          'Vykonať údržbu',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                      builder: (BuildContext context, StateSetter setState) {
+                        _dateController.text = "";
+                        _descriptionController.text = "";
+                        _workerController.text = "";
+
+                        return AlertDialog(
+                          title: Text(
+                            'Nová porucha',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+
                           ),
-
-                        ),
-                        content: Container(
-                          width: 300,
-                          height: 300,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              TextFormField(
-                                controller: _dateController,
-                                decoration: InputDecoration(
-                                  labelText: 'Dátum',
-                                  labelStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                          content: Container(
+                            width: 300,
+                            height: 300,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextFormField(
+                                  controller: _dateController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Dátum',
+                                    labelStyle: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                    errorText: _isDateErrorVisible ? 'Musíte zadať dátum a čas' : null,
                                   ),
-                                  errorText: _isDateErrorVisible ? 'Musíte zadať dátum a čas' : null,
-                                ),
-                                readOnly: true,
-                                onTap: () async {
-                                  DateTime? pickedDate = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now(),
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2025),
-                                  );
-
-                                  if (pickedDate != null) {
-                                    String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
-                                    setState(() {
-                                      _dateController.text = formattedDate;
-                                    });
-
-                                    TimeOfDay? pickedTime = await showTimePicker(
+                                  readOnly: true,
+                                  onTap: () async {
+                                    DateTime? pickedDate = await showDatePicker(
                                       context: context,
-                                      initialTime: TimeOfDay.now(),
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2000),
+                                      lastDate: DateTime(2025),
                                     );
 
-                                    if (pickedTime != null) {
-                                      final now = DateTime.now();
-                                      final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
-                                      String formattedTime = DateFormat('HH:mm').format(dt);
-                                      _dateController.text = '$formattedDate ($formattedTime)';
+                                    if (pickedDate != null) {
+                                      String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                      setState(() {
+                                        _dateController.text = formattedDate;
+                                      });
+
+                                      TimeOfDay? pickedTime = await showTimePicker(
+                                        context: context,
+                                        initialTime: TimeOfDay.now(),
+                                      );
+
+                                      if (pickedTime != null) {
+                                        final now = DateTime.now();
+                                        final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+                                        String formattedTime = DateFormat('HH:mm').format(dt);
+                                        _dateController.text = '$formattedDate ($formattedTime)';
+                                      }
                                     }
-                                  }
-                                },
-                              ),
+                                  },
+                                ),
 
-                              TextField(
-                                controller: _descriptionController,
-                                decoration: InputDecoration(
-                                  labelText: 'Popis',
-                                  labelStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                                TextField(
+                                  controller: _descriptionController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Popis',
+                                    labelStyle: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
                                   ),
                                 ),
-                              ),
 
-                              TextField(
-                                controller: _workerController,
-                                decoration: InputDecoration(
-                                  labelText: 'Pracovník',
-                                  labelStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                                TextField(
+                                  controller: _workerController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Pracovník',
+                                    labelStyle: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+
+                              ],
+                            ),
                           ),
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () async {
-                              if (_dateController.text.isEmpty) {
-                                setState(() {
-                                  _isDateErrorVisible = true;
-                                });
-                              } else {
-                                setState(() {
-                                  _isDateErrorVisible = false;
-                                });
-                                String date = _dateController.text;
-                                String description = _descriptionController.text;
-                                String worker = _workerController.text;
-
-                                try {
-                                  DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
-                                  Timestamp timestamp = Timestamp.fromDate(parsedDate);
-
-                                  await FirebaseFirestore.instance
-                                      .collection('devices')
-                                      .doc(widget.device.id)
-                                      .collection('parts')
-                                      .doc(widget.partId)
-                                      .collection('maintenances')
-                                      .add({
-                                    'date': timestamp,
-                                    'description': description,
-                                    'worker': worker,
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () async {
+                                if (_dateController.text.isEmpty) {
+                                  setState(() {
+                                    _isDateErrorVisible = true;
                                   });
+                                } else {
+                                  setState(() {
+                                    _isDateErrorVisible = false;
+                                  });
+                                  String date = _dateController.text;
+                                  String description = _descriptionController.text;
+                                  String worker = _workerController.text;
 
-                                  Navigator.of(context).pop();
+                                  try {
+                                    DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
+                                    Timestamp timestamp = Timestamp.fromDate(parsedDate);
 
-                                  await fetchPartData();
+                                    await FirebaseFirestore.instance
+                                        .collection('devices')
+                                        .doc(widget.device.id)
+                                        .collection('faults')
+                                        .add({
+                                      'date': timestamp,
+                                      'description': description,
+                                      'worker': worker,
+                                      'isRepaired': false,
+                                    });
 
-                                } catch (error) {
-                                  print('Chyba pri vytváraní záznamu: $error');
+                                    Navigator.of(context).pop();
+
+                                    await refreshData();
+
+                                  } catch (error) {
+                                    print('Chyba pri vytváraní záznamu: $error');
+                                  }
                                 }
-                              }
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: customYellow,
-                              minimumSize: Size(100, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.black),
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: customYellow,
+                                minimumSize: Size(100, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(color: Colors.black),
+                                ),
+                              ),
+                              child: Text(
+                                'Uložiť',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: customDarkGrey,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            child: Text(
-                              'Uložiť',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: customDarkGrey,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
+                          ],
+                        );
+                      }
                   );
                 },
               );
             },
             child: Text(
-              'Vykonať údržbu',
+              'Nová porucha',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -537,34 +535,24 @@ class _PartMaintenanceState extends State<PartMaintenance> {
     );
   }
 
-  Future<void> fetchPartData() async {
+  Future<void> refreshData() async {
     try {
-      DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('devices')
           .doc(widget.device.id)
-          .collection('parts')
-          .doc(widget.partId)
+          .collection('faults')
           .get();
 
-      if (documentSnapshot.exists) {
-        Part fetchedPart = Part(
-          id: documentSnapshot.id,
-          name: documentSnapshot['name'],
-          imageUrl: documentSnapshot['imageUrl'],
-          maintDescription: documentSnapshot['maintenance_description'],
-          maintDays: documentSnapshot['maintenance_period_days'],
-          maintHours: documentSnapshot['maintenance_period_hours'],
-        );
-
-        setState(() {
-          part = fetchedPart;
-        });
-      } else {
-        throw Exception('Document does not exist');
-      }
+      setState(() {
+      });
     } catch (error) {
-      throw Exception('Error fetching part data: $error');
+      throw Exception('Error refreshing data: $error');
     }
   }
-}
 
+  void updateIsRepaired(bool newValue) {
+    setState(() {
+      isRepaired = newValue;
+    });
+  }
+}

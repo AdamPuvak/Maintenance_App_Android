@@ -20,6 +20,7 @@ class _TempState extends State<Temp> {
     super.initState();
     //loadDevices();
     //copyDocuments();
+    //deleteMaintenances();
   }
 
   Future<void> copyDocuments() async {
@@ -62,8 +63,6 @@ class _TempState extends State<Temp> {
     }
   }
 
-
-
   Future<void> loadDevices() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -88,6 +87,31 @@ class _TempState extends State<Temp> {
       print('Error loading devices: $e');
     }
   }
+
+  Future<void> deleteMaintenances() async {
+    try {
+      QuerySnapshot devicesSnapshot = await FirebaseFirestore.instance.collection('devices').get();
+
+      for (QueryDocumentSnapshot deviceDoc in devicesSnapshot.docs) {
+        String deviceId = deviceDoc.id;
+
+        QuerySnapshot partsSnapshot = await deviceDoc.reference.collection('parts').get();
+
+        for (QueryDocumentSnapshot partDoc in partsSnapshot.docs) {
+          String partId = partDoc.id;
+
+          await partDoc.reference.collection('maintenances').get().then((snapshot) {
+            for (DocumentSnapshot doc in snapshot.docs) {
+              doc.reference.delete();
+            }
+          });
+        }
+      }
+    } catch (error) {
+      print("chyba");
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {

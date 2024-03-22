@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:maintenace/utilities/globalVar.dart';
 import '../app-bar/customAppBar.dart';
 import 'device.dart';
@@ -89,7 +90,7 @@ class _DevicesPageState extends State<DevicesPage> {
                               ),
                             ],
                           ),
-                          constraints: BoxConstraints(maxWidth: 370), // max. šírka prvku
+                          constraints: BoxConstraints(maxWidth: 370),
                           child: ListTile(
                             contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                             title: Row(
@@ -129,46 +130,90 @@ class _DevicesPageState extends State<DevicesPage> {
                               children: [
                                 SizedBox(height: 25,),
 
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: customSuperLightGrey,
-                                        border: Border.all(color: customBlue, width: 3),
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                      child: Text(
-                                        'Údržba:',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: customBlue,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
+                                Container(
+                                  padding: EdgeInsets.all(8),
+                                  width: 500,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    border: Border.all(color: customBlue, width: 3),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: FutureBuilder<DateTime?>(
+                                    future: getNearestMaintenanceDate(devices[index].id),
+                                    builder: (BuildContext context, AsyncSnapshot<DateTime?> snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'Údržba:  ',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customBlue,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: '*Načítavanie*',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customBlue,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        DateTime? nearestMaintenanceDate = snapshot.data;
+                                        String formattedDate = nearestMaintenanceDate != null
+                                            ? DateFormat('dd. MM. yyyy').format(nearestMaintenanceDate)
+                                            : 'Nie je k dispozici';
+                                        return RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'Údržba:  ',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customBlue,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: formattedDate,
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customBlue,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
 
-                                    Spacer(),
+                                SizedBox(height: 15,),
 
-                                    Container(
-                                      padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: customSuperLightGrey,
-                                        border: Border.all(color: customRed, width: 3),
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                      child: Text(
-                                        'Poruchy:',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: customRed,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                Container(
+                                  padding: EdgeInsets.all(8),
+                                  width: 500,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red[50],
+                                    border: Border.all(color: customRed, width: 3),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Text(
+                                    'Poruchy:',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: customRed,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    Spacer(), // Medzera, aby sa druhý widget posunul na stred riadku
-                                  ],
+                                  ),
                                 ),
 
                                 SizedBox(height: 25,),

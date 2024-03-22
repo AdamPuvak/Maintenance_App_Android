@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:maintenace/PAGE-(devices)/subpages/device_maintenance.dart';
-import 'package:maintenace/PAGE-(devices)/subpages/device_malfunctions.dart';
+import 'package:maintenace/PAGE-(devices)/subpages/device_faults.dart';
 import 'package:maintenace/PAGE-(devices)/subpages/device_repairs.dart';
 import '../app-bar/customAppBar.dart';
 import '../utilities/globalVar.dart';
@@ -103,15 +105,51 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
           SizedBox(height: 40,),
 
-          ActionPlate(text1: "ÚDRŽBA", text2: "Kontrola bude o toľko dní", icon: Icons.settings, color: Colors.blue, locationPage: () => DeviceMaintenance(device: this.widget.device,),),
+          FutureBuilder<DateTime?>(
+            future: getNearestMaintenanceDate(widget.device.id),
+            builder: (BuildContext context, AsyncSnapshot<DateTime?> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return ActionPlate(
+                  text1: "ÚDRŽBA",
+                  text2: "Najbližšia údržba:  *Načítavanie*",
+                  icon: Icons.settings,
+                  color: Colors.blue,
+                  locationPage: () => DeviceMaintenance(device: widget.device),
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                DateTime? nearestMaintenanceDate = snapshot.data;
+                String formattedDate = nearestMaintenanceDate != null
+                    ? DateFormat('dd. MM. yyyy').format(nearestMaintenanceDate)
+                    : 'Nie je k dispozici';
+                return ActionPlate(
+                  text1: "ÚDRŽBA",
+                  text2: "Najbližšia údržba:  $formattedDate",
+                  icon: Icons.settings,
+                  color: Colors.blue,
+                  locationPage: () => DeviceMaintenance(device: widget.device),
+                );
+              }
+            },
+          ),
 
           SizedBox(height: 15,),
 
-          ActionPlate(text1: "PORUCHY", text2: "Žiadne aktuálne poruchy", icon: Icons.warning, color: Colors.red, locationPage: () => DeviceMalfunctions(device: this.widget.device,)),
+          ActionPlate(
+              text1: "PORUCHY",
+              text2: "Žiadne aktuálne poruchy",
+              icon: Icons.warning, color: Colors.red,
+              locationPage: () => DeviceFaults(device: this.widget.device,)
+          ),
 
           SizedBox(height: 15,),
 
-          ActionPlate(text1: "OPRAVY", text2: "", icon: Icons.build, color: Colors.green, locationPage: () => DeviceRepairs(device: this.widget.device,)),
+          ActionPlate(text1: "OPRAVY",
+              text2: "", icon: Icons.build,
+              color: Colors.green,
+              locationPage: () => DeviceRepairs(device: this.widget.device,)
+          ),
         ],
       ),
     );
@@ -242,5 +280,41 @@ class _ActionPlateState extends State<ActionPlate> {
         ),
       ),
     );
+  }
+}
+
+Future<DateTime?> getNearestMaintenanceDate(String deviceId) async {
+  try {
+    QuerySnapshot devicePartsSnapshot = await FirebaseFirestore.instance
+        .collection('devices')
+        .doc(deviceId)
+        .collection('parts')
+        .get();
+
+    DateTime? nearestMaintenanceDate;
+
+    for (var partDoc in devicePartsSnapshot.docs) {
+      var partData = partDoc.data() as Map<String, dynamic>?;
+      if (partData != null && partData.containsKey('maintenance_period_days')) {
+        int maintenancePeriodDays = partData['maintenance_period_days'];
+        DateTime? lastMaintenanceDate = await getLastMaintenanceDate(deviceId, partDoc.id);
+
+        DateTime? nextMaintenanceDate;
+        if (lastMaintenanceDate != null) {
+          nextMaintenanceDate = lastMaintenanceDate.add(Duration(days: maintenancePeriodDays));
+        }
+
+        if (nextMaintenanceDate != null) {
+          if (nearestMaintenanceDate == null || nextMaintenanceDate.isBefore(nearestMaintenanceDate)) {
+            nearestMaintenanceDate = nextMaintenanceDate;
+          }
+        }
+      }
+    }
+
+    return nearestMaintenanceDate;
+  } catch (e) {
+    print('Error getting next maintenance date: $e');
+    return null;
   }
 }
