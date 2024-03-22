@@ -33,6 +33,7 @@ class _DevicesPageState extends State<DevicesPage> {
 
       List<Device> fetchedDevices = querySnapshot.docs.map((doc) {
         return Device(
+          id: doc.id,
           name: doc['name'],
           imageUrl: doc['imageUrl'],
           info1: doc['info1'],

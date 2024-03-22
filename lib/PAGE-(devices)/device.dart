@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 class Device{
+  final String id;
   final String name;
   final String imageUrl;
   final String info1;
@@ -10,6 +9,7 @@ class Device{
   late String malfunctions;
 
   Device({
+    required this.id,
     required this.name,
     required this.imageUrl,
     required this.info1,

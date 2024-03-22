@@ -19,7 +19,7 @@ class _TempState extends State<Temp> {
   void initState() {
     super.initState();
     //loadDevices();
-    copyDocuments();
+    //copyDocuments();
   }
 
   Future<void> copyDocuments() async {
@@ -72,6 +72,7 @@ class _TempState extends State<Temp> {
 
       List<Device> fetchedDevices = querySnapshot.docs.map((doc) {
         return Device(
+          id: doc.id,
           name: doc['name'],
           imageUrl: doc['imageUrl'],
           info1: doc['info1'],
