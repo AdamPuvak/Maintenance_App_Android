@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../app-bar/customAppBar.dart';
 import '../../utilities/globalVar.dart';
@@ -85,7 +84,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                     .collection('devices')
                     .doc(widget.device.id)
                     .collection('faults')
-                    .orderBy('date', descending: true)
+                    //.orderBy('date', descending: true)
                     .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -226,6 +225,13 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                                         ),
                                                       ),
                                                       DropdownButtonFormField<bool>(
+                                                        decoration: InputDecoration(
+                                                          labelText: 'Stav',
+                                                          labelStyle: TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 18,
+                                                          ),
+                                                        ),
                                                         value: isRepaired,
                                                         onChanged: (newValue) {
                                                           isRepaired = newValue!;

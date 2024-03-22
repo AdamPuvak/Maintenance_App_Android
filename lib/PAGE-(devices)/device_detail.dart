@@ -136,11 +136,27 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
           SizedBox(height: 15,),
 
-          ActionPlate(
-              text1: "PORUCHY",
-              text2: "Žiadne aktuálne poruchy",
-              icon: Icons.warning, color: Colors.red,
-              locationPage: () => DeviceFaults(device: this.widget.device,)
+          FutureBuilder<int>(
+            future: getUnrepairedFaultsCount(widget.device.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return ActionPlate(
+                    text1: "PORUCHY",
+                    text2: "Aktuálne poruchy:  *Načítavanie*",
+                    icon: Icons.warning, color: Colors.red,
+                    locationPage: () => DeviceFaults(device: this.widget.device,)
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                return ActionPlate(
+                    text1: "PORUCHY",
+                    text2: "Aktuálne poruchy:  ${snapshot.data}",
+                    icon: Icons.warning, color: Colors.red,
+                    locationPage: () => DeviceFaults(device: this.widget.device,)
+                );
+              }
+            },
           ),
 
           SizedBox(height: 15,),
@@ -316,5 +332,21 @@ Future<DateTime?> getNearestMaintenanceDate(String deviceId) async {
   } catch (e) {
     print('Error getting next maintenance date: $e');
     return null;
+  }
+}
+
+Future<int> getUnrepairedFaultsCount(String deviceId) async {
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('devices')
+        .doc(deviceId)
+        .collection('faults')
+        .where('isRepaired', isEqualTo: false)
+        .get();
+
+    return querySnapshot.size;
+  } catch (error) {
+    print('Error getting unrepaired faults count: $error');
+    return -1;
   }
 }

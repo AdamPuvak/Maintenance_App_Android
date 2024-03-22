@@ -206,15 +206,60 @@ class _DevicesPageState extends State<DevicesPage> {
                                     border: Border.all(color: customRed, width: 3),
                                     borderRadius: BorderRadius.circular(5),
                                   ),
-                                  child: Text(
-                                    'Poruchy:',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: customRed,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  child: FutureBuilder<int>(
+                                    future: getUnrepairedFaultsCount(devices[index].id),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'Poruchy:  ',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customBlue,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: '*Načítavanie*',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customBlue,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        return RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: 'Poruchy:  ',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customRed,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: '${snapshot.data}',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: customRed,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                    },
                                   ),
                                 ),
+
 
                                 SizedBox(height: 25,),
 
