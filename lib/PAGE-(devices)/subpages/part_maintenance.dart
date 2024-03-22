@@ -25,6 +25,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
   late Part part;
   TextEditingController _dateController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _workerController = TextEditingController();
   bool _isDateErrorVisible = false;
 
   @override
@@ -155,227 +156,231 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                         final maintenance = documents[index];
                         final date = maintenance['date'].toDate();
                         final formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(date);
-                        final workerReference = maintenance['worker'];
 
-                        return FutureBuilder<DocumentSnapshot>(
-                          future: workerReference.get(),
-                          builder: (context, workerSnapshot) {
-                            final workerData = (workerSnapshot.data != null) ? workerSnapshot.data!.data()! as Map<String, dynamic> : {};
-                            final workerFullName = '${workerData['name']} ${workerData['surname']}';
-                            return Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: customSuperLightGrey,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
+                        return Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: customSuperLightGrey,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            RichText(
-                                              text: TextSpan(
-                                                style: DefaultTextStyle.of(context).style,
-                                                children: [
-                                                  TextSpan(text: 'Dátum: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                                  TextSpan(text: '$formattedDate\n'),
-                                                  TextSpan(text: 'Pracovník: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                                  TextSpan(text: '$workerFullName\n'),
-                                                  TextSpan(text: 'Popis: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                                  TextSpan(text: '${maintenance['description']}'),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            style: DefaultTextStyle.of(context).style,
+                                            children: [
+                                              TextSpan(text: 'Dátum: ', style: TextStyle(fontWeight: FontWeight.bold,)),
+                                              TextSpan(text: '$formattedDate\n'),
+                                              TextSpan(text: 'Popis: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                              TextSpan(text: '${maintenance['description']}\n'),
+                                              TextSpan(text: 'Pracovník: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                              TextSpan(text: '${maintenance['worker']}'),
+                                            ],
+                                          ),
                                         ),
-                                      ),
+                                      ],
+                                    ),
+                                  ),
+                                  //---------------------------- Edit/Delete maintenance
+                                  IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return StatefulBuilder(
+                                            builder: (BuildContext context, StateSetter setState) {
+                                              DateTime existingDate = maintenance['date'].toDate();
+                                              String formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(existingDate);
+                                              String existingDescription = maintenance['description'];
+                                              String existingWorker = maintenance['worker'];
 
-                                      IconButton(
-                                        icon: Icon(Icons.edit),
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return StatefulBuilder(
-                                                builder: (BuildContext context, StateSetter setState) {
-                                                  DateTime existingDate = maintenance['date'].toDate();
-                                                  String formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(existingDate);
 
-                                                  String existingDescription = maintenance['description'];
+                                              _dateController.text = formattedDate;
+                                              _descriptionController.text = existingDescription;
+                                              _workerController.text = existingWorker;
 
-                                                  _dateController.text = formattedDate;
-                                                  _descriptionController.text = existingDescription;
-
-                                                  return AlertDialog(
-                                                    title: Text('Upraviť záznam'),
-                                                    content: Container(
-                                                      width: 300,
-                                                      height: 250,
-                                                      child: Column(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: <Widget>[
-                                                          TextFormField(
-                                                            controller: _dateController,
-                                                            decoration: InputDecoration(
-                                                              labelText: 'Dátum',
-                                                              labelStyle: TextStyle(
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 18,
-                                                              ),
-                                                            ),
-                                                            readOnly: true,
-                                                            onTap: () async {
-                                                              DateTime? pickedDate = await showDatePicker(
-                                                                context: context,
-                                                                initialDate: existingDate,
-                                                                firstDate: DateTime(2000),
-                                                                lastDate: DateTime(2025),
-                                                              );
-
-                                                              if (pickedDate != null) {
-                                                                String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
-                                                                setState(() {
-                                                                  _dateController.text = formattedDate;
-                                                                });
-
-                                                                TimeOfDay? pickedTime = await showTimePicker(
-                                                                  context: context,
-                                                                  initialTime: TimeOfDay.fromDateTime(existingDate),
-                                                                );
-
-                                                                if (pickedTime != null) {
-                                                                  final now = DateTime.now();
-                                                                  final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
-                                                                  String formattedTime = DateFormat('HH:mm').format(dt);
-                                                                  _dateController.text = '$formattedDate ($formattedTime)';
-                                                                }
-                                                              }
-                                                            },
-                                                          ),
-                                                          TextField(
-                                                            controller: _descriptionController,
-                                                            decoration: InputDecoration(
-                                                              labelText: 'Popis',
-                                                              labelStyle: TextStyle(
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 18,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    actions: <Widget>[
-                                                      TextButton(
-                                                        onPressed: () async {
-                                                          try {
-                                                            await FirebaseFirestore.instance
-                                                                .collection('devices')
-                                                                .doc(widget.device.id)
-                                                                .collection('parts')
-                                                                .doc(widget.partId)
-                                                                .collection('maintenances')
-                                                                .doc(maintenance.id)
-                                                                .delete();
-
-                                                            Navigator.of(context).pop();
-
-                                                            await fetchPartData();
-
-                                                          } catch (error) {
-                                                            print('Chyba při mazání záznamu: $error');
-                                                          }
-                                                        },
-                                                        style: TextButton.styleFrom(
-                                                          backgroundColor: Colors.red,
-                                                          minimumSize: Size(100, 50),
-                                                          shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(10),
-                                                            side: BorderSide(color: Colors.black),
-                                                          ),
-                                                        ),
-                                                        child: Text(
-                                                          'Vymazať',
-                                                          style: TextStyle(
-                                                            fontSize: 18,
-                                                            color: Colors.white,
+                                              return AlertDialog(
+                                                title: Text('Upraviť záznam'),
+                                                content: Container(
+                                                  width: 300,
+                                                  height: 250,
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: <Widget>[
+                                                      TextFormField(
+                                                        controller: _dateController,
+                                                        decoration: InputDecoration(
+                                                          labelText: 'Dátum',
+                                                          labelStyle: TextStyle(
                                                             fontWeight: FontWeight.bold,
+                                                            fontSize: 18,
                                                           ),
                                                         ),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () async {
-                                                          setState(() {
-                                                            _isDateErrorVisible = false;
-                                                          });
-                                                          String date = _dateController.text;
-                                                          String description = _descriptionController.text;
+                                                        readOnly: true,
+                                                        onTap: () async {
+                                                          DateTime? pickedDate = await showDatePicker(
+                                                            context: context,
+                                                            initialDate: existingDate,
+                                                            firstDate: DateTime(2000),
+                                                            lastDate: DateTime(2025),
+                                                          );
 
-                                                          try {
-                                                            DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
-                                                            Timestamp timestamp = Timestamp.fromDate(parsedDate);
-
-                                                            await FirebaseFirestore.instance
-                                                                .collection('devices')
-                                                                .doc(widget.device.id)
-                                                                .collection('parts')
-                                                                .doc(widget.partId)
-                                                                .collection('maintenances')
-                                                                .doc(maintenance.id)
-                                                                .update({
-                                                              'date': timestamp,
-                                                              'description': description,
+                                                          if (pickedDate != null) {
+                                                            String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                                            setState(() {
+                                                              _dateController.text = formattedDate;
                                                             });
 
-                                                            Navigator.of(context).pop();
+                                                            TimeOfDay? pickedTime = await showTimePicker(
+                                                              context: context,
+                                                              initialTime: TimeOfDay.fromDateTime(existingDate),
+                                                            );
 
-                                                            await fetchPartData();
-
-                                                          } catch (error) {
-                                                            print('Chyba pri aktualizácií záznamu: $error');
+                                                            if (pickedTime != null) {
+                                                              final now = DateTime.now();
+                                                              final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+                                                              String formattedTime = DateFormat('HH:mm').format(dt);
+                                                              _dateController.text = '$formattedDate ($formattedTime)';
+                                                            }
                                                           }
                                                         },
-                                                        style: TextButton.styleFrom(
-                                                          backgroundColor: customYellow,
-                                                          minimumSize: Size(100, 50),
-                                                          shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(10),
-                                                            side: BorderSide(color: Colors.black),
+                                                      ),
+                                                      TextField(
+                                                        controller: _descriptionController,
+                                                        decoration: InputDecoration(
+                                                          labelText: 'Popis',
+                                                          labelStyle: TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 18,
                                                           ),
                                                         ),
-                                                        child: Text(
-                                                          'Uložiť',
-                                                          style: TextStyle(
-                                                            fontSize: 18,
-                                                            color: customDarkGrey,
+                                                      ),
+                                                      TextField(
+                                                        controller: _workerController,
+                                                        decoration: InputDecoration(
+                                                          labelText: 'Pracovník',
+                                                          labelStyle: TextStyle(
                                                             fontWeight: FontWeight.bold,
+                                                            fontSize: 18,
                                                           ),
                                                         ),
                                                       ),
                                                     ],
-                                                  );
-                                                },
+                                                  ),
+                                                ),
+                                                actions: <Widget>[
+                                                  TextButton(
+                                                    onPressed: () async {
+                                                      try {
+                                                        await FirebaseFirestore.instance
+                                                            .collection('devices')
+                                                            .doc(widget.device.id)
+                                                            .collection('parts')
+                                                            .doc(widget.partId)
+                                                            .collection('maintenances')
+                                                            .doc(maintenance.id)
+                                                            .delete();
+
+                                                        Navigator.of(context).pop();
+
+                                                        await fetchPartData();
+
+                                                      } catch (error) {
+                                                        print('Chyba při mazání záznamu: $error');
+                                                      }
+                                                    },
+                                                    style: TextButton.styleFrom(
+                                                      backgroundColor: Colors.red,
+                                                      minimumSize: Size(100, 50),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        side: BorderSide(color: Colors.black),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      'Vymazať',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () async {
+                                                      setState(() {
+                                                        _isDateErrorVisible = false;
+                                                      });
+                                                      String date = _dateController.text;
+                                                      String description = _descriptionController.text;
+                                                      String worker = _workerController.text;
+
+                                                      try {
+                                                        DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
+                                                        Timestamp timestamp = Timestamp.fromDate(parsedDate);
+
+                                                        await FirebaseFirestore.instance
+                                                            .collection('devices')
+                                                            .doc(widget.device.id)
+                                                            .collection('parts')
+                                                            .doc(widget.partId)
+                                                            .collection('maintenances')
+                                                            .doc(maintenance.id)
+                                                            .update({
+                                                          'date': timestamp,
+                                                          'description': description,
+                                                          'worker': worker,
+                                                        });
+
+                                                        Navigator.of(context).pop();
+
+                                                        await fetchPartData();
+
+                                                      } catch (error) {
+                                                        print('Chyba pri aktualizácií záznamu: $error');
+                                                      }
+                                                    },
+                                                    style: TextButton.styleFrom(
+                                                      backgroundColor: customYellow,
+                                                      minimumSize: Size(100, 50),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        side: BorderSide(color: Colors.black),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      'Uložiť',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        color: customDarkGrey,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               );
                                             },
                                           );
                                         },
-                                      ),
-
-                                    ],
-                                  ),
-                                  Divider(
-                                    color: Colors.grey,
-                                    thickness: 2,
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
-                            );
-
-                          },
+                              Divider(
+                                color: Colors.grey,
+                                thickness: 2,
+                              ),
+                            ],
+                          ),
                         );
                       },
                     );
@@ -387,6 +392,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
 
           SizedBox(height: 20),
 
+          //------------------------------ Create maintenance
           ElevatedButton(
             onPressed: () {
               showDialog(
@@ -396,6 +402,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                     builder: (BuildContext context, StateSetter setState) {
                       _dateController.text = "";
                       _descriptionController.text = "";
+                      _workerController.text = "";
                       return AlertDialog(
                         title: Text(
                           'Vykonať údržbu',
@@ -460,6 +467,17 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                   ),
                                 ),
                               ),
+
+                              TextField(
+                                controller: _workerController,
+                                decoration: InputDecoration(
+                                  labelText: 'Pracovník',
+                                  labelStyle: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -476,7 +494,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                 });
                                 String date = _dateController.text;
                                 String description = _descriptionController.text;
-                                DocumentReference workerReference = FirebaseFirestore.instance.doc('/workers/worker_1');
+                                String worker = _workerController.text;
 
                                 try {
                                   DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
@@ -491,7 +509,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                       .add({
                                     'date': timestamp,
                                     'description': description,
-                                    'worker': workerReference
+                                    'worker': worker,
                                   });
 
                                   Navigator.of(context).pop();
