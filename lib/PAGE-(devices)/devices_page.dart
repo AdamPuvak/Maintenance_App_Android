@@ -217,7 +217,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                                 text: 'Poruchy:  ',
                                                 style: TextStyle(
                                                   fontSize: 20,
-                                                  color: customBlue,
+                                                  color: customRed,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -225,7 +225,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                                 text: '*Načítavanie*',
                                                 style: TextStyle(
                                                   fontSize: 20,
-                                                  color: customBlue,
+                                                  color: customRed,
                                                 ),
                                               ),
                                             ],

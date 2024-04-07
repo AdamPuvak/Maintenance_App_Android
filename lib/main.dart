@@ -11,6 +11,7 @@ import 'package:maintenace/login/sign_up_page.dart';
 import 'package:maintenace/utilities/temp.dart';
 
 import 'PAGE-(devices)/subpages/part_maintenance.dart';
+import 'PAGE-(workplace)/workplace_page.dart';
 
 
 void main() async {
@@ -28,8 +29,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Industry Hub',
-      //home: HomePage(),
-      home: DevicesPage(),
+      //home: WorkplacePage(),
+      home: HomePage(),
+      //home: DevicesPage(),
       //home: Temp(),
       //home: SplashScreen(),
     );

@@ -95,6 +95,8 @@ class _DeviceRepairsState extends State<DeviceRepairs> {
                         if (isRepaired) {
                           final date = fault['date'].toDate();
                           final formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(date);
+                          final repairDate = fault['repairDate'].toDate();
+                          final formattedRepairDate = DateFormat('dd. MM. yyyy (HH:mm)').format(repairDate);
 
                           return Container(
                             padding: EdgeInsets.all(10),
@@ -115,7 +117,7 @@ class _DeviceRepairsState extends State<DeviceRepairs> {
                                             text: TextSpan(
                                               style: DefaultTextStyle.of(context).style,
                                               children: [
-                                                TextSpan(text: 'Dátum: ', style: TextStyle(fontWeight: FontWeight.bold,)),
+                                                TextSpan(text: 'Dátum poruchy: ', style: TextStyle(fontWeight: FontWeight.bold,)),
                                                 TextSpan(text: '$formattedDate\n'),
                                                 TextSpan(text: 'Popis: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                                 TextSpan(text: '${fault['description']}\n'),
@@ -123,12 +125,14 @@ class _DeviceRepairsState extends State<DeviceRepairs> {
                                                 TextSpan(text: '${fault['worker']}\n'),
                                                 TextSpan(text: 'Stav: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                                 TextSpan(
-                                                  text: 'Opravená',
+                                                  text: 'Opravená\n',
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     color: Colors.green,
                                                   ),
                                                 ),
+                                                TextSpan(text: 'Dátum opravy: ', style: TextStyle(fontWeight: FontWeight.bold,)),
+                                                TextSpan(text: '$formattedRepairDate'),
                                               ],
                                             ),
                                           ),

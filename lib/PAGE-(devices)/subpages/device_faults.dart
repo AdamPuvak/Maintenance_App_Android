@@ -20,6 +20,7 @@ class DeviceFaults extends StatefulWidget {
 
 class _DeviceFaultsState extends State<DeviceFaults> {
   TextEditingController _dateController = TextEditingController();
+  TextEditingController _repairDateController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _workerController = TextEditingController();
   bool isRepaired = false;
@@ -100,6 +101,9 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                         final date = fault['date'].toDate();
                         final formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(date);
 
+                        final repairDate = fault['repairDate'].toDate();
+                        final formattedRepairDate = DateFormat('dd. MM. yyyy (HH:mm)').format(repairDate);
+
                         return Container(
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -119,7 +123,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                           text: TextSpan(
                                             style: DefaultTextStyle.of(context).style,
                                             children: [
-                                              TextSpan(text: 'Dátum: ', style: TextStyle(fontWeight: FontWeight.bold,)),
+                                              TextSpan(text: 'Dátum poruchy: ', style: TextStyle(fontWeight: FontWeight.bold,)),
                                               TextSpan(text: '$formattedDate\n'),
                                               TextSpan(text: 'Popis: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                               TextSpan(text: '${fault['description']}\n'),
@@ -133,6 +137,10 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                                   color: fault['isRepaired'] ? Colors.green : Colors.red,
                                                 ),
                                               ),
+                                              if(fault['isRepaired'])
+                                                TextSpan(text: '\nDátum opravy: ', style: TextStyle(fontWeight: FontWeight.bold,)),
+                                              if(fault['isRepaired'])
+                                                TextSpan(text: '$formattedRepairDate'),
                                             ],
                                           ),
                                         ),
@@ -154,101 +162,148 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                               String existingWorker = fault['worker'];
                                               isRepaired = fault['isRepaired'];
 
+                                              DateTime existingRepairDate = fault['date'].toDate();;
+                                              if(fault['repairDate'] != ""){
+                                                existingRepairDate = fault['repairDate'].toDate();
+                                                String formattedRepairDate = DateFormat('dd. MM. yyyy').format(existingRepairDate);
+                                                _repairDateController.text = formattedRepairDate;
+                                              }
+
                                               _dateController.text = formattedDate;
                                               _descriptionController.text = existingDescription;
                                               _workerController.text = existingWorker;
 
                                               return AlertDialog(
                                                 title: Text('Upraviť záznam'),
-                                                content: Container(
-                                                  width: 300,
-                                                  height: 300,
-                                                  child: Column(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: <Widget>[
-                                                      TextFormField(
-                                                        controller: _dateController,
-                                                        decoration: InputDecoration(
-                                                          labelText: 'Dátum',
-                                                          labelStyle: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
+                                                content: SingleChildScrollView(
+                                                  child: Container(
+                                                    width: 300,
+                                                    height: 350,
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: <Widget>[
+                                                        TextFormField(
+                                                          controller: _dateController,
+                                                          decoration: InputDecoration(
+                                                            labelText: 'Dátum',
+                                                            labelStyle: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        readOnly: true,
-                                                        onTap: () async {
-                                                          DateTime? pickedDate = await showDatePicker(
-                                                            context: context,
-                                                            initialDate: existingDate,
-                                                            firstDate: DateTime(2000),
-                                                            lastDate: DateTime(2025),
-                                                          );
-
-                                                          if (pickedDate != null) {
-                                                            String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
-                                                            setState(() {
-                                                              _dateController.text = formattedDate;
-                                                            });
-
-                                                            TimeOfDay? pickedTime = await showTimePicker(
+                                                          readOnly: true,
+                                                          onTap: () async {
+                                                            DateTime? pickedDate = await showDatePicker(
                                                               context: context,
-                                                              initialTime: TimeOfDay.fromDateTime(existingDate),
+                                                              initialDate: existingDate,
+                                                              firstDate: DateTime(2000),
+                                                              lastDate: DateTime(2025),
                                                             );
-
-                                                            if (pickedTime != null) {
-                                                              final now = DateTime.now();
-                                                              final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
-                                                              String formattedTime = DateFormat('HH:mm').format(dt);
-                                                              _dateController.text = '$formattedDate ($formattedTime)';
+                                                  
+                                                            if (pickedDate != null) {
+                                                              String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                                              setState(() {
+                                                                _dateController.text = formattedDate;
+                                                              });
+                                                  
+                                                              TimeOfDay? pickedTime = await showTimePicker(
+                                                                context: context,
+                                                                initialTime: TimeOfDay.fromDateTime(existingDate),
+                                                              );
+                                                  
+                                                              if (pickedTime != null) {
+                                                                final now = DateTime.now();
+                                                                final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+                                                                String formattedTime = DateFormat('HH:mm').format(dt);
+                                                                _dateController.text = '$formattedDate ($formattedTime)';
+                                                              }
                                                             }
-                                                          }
-                                                        },
-                                                      ),
-                                                      TextField(
-                                                        controller: _descriptionController,
-                                                        decoration: InputDecoration(
-                                                          labelText: 'Popis',
-                                                          labelStyle: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
+                                                          },
+                                                        ),
+                                                        TextField(
+                                                          controller: _descriptionController,
+                                                          decoration: InputDecoration(
+                                                            labelText: 'Popis',
+                                                            labelStyle: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                      TextField(
-                                                        controller: _workerController,
-                                                        decoration: InputDecoration(
-                                                          labelText: 'Pracovník',
-                                                          labelStyle: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
+                                                        TextField(
+                                                          controller: _workerController,
+                                                          decoration: InputDecoration(
+                                                            labelText: 'Pracovník',
+                                                            labelStyle: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                      DropdownButtonFormField<bool>(
-                                                        decoration: InputDecoration(
-                                                          labelText: 'Stav',
-                                                          labelStyle: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
+                                                        DropdownButtonFormField<bool>(
+                                                          decoration: InputDecoration(
+                                                            labelText: 'Stav',
+                                                            labelStyle: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                            ),
                                                           ),
+                                                          value: isRepaired,
+                                                          onChanged: (newValue) {
+                                                            isRepaired = newValue!;
+                                                            updateIsRepaired(newValue);
+                                                          },
+                                                          items: [
+                                                            DropdownMenuItem(
+                                                              value: true,
+                                                              child: Text('Opravená'),
+                                                            ),
+                                                            DropdownMenuItem(
+                                                              value: false,
+                                                              child: Text('Neopravená'),
+                                                            ),
+                                                          ],
                                                         ),
-                                                        value: isRepaired,
-                                                        onChanged: (newValue) {
-                                                          isRepaired = newValue!;
-                                                          updateIsRepaired(newValue);
-                                                        },
-                                                        items: [
-                                                          DropdownMenuItem(
-                                                            value: true,
-                                                            child: Text('Opravená'),
+                                                        TextFormField(
+                                                          controller: _repairDateController,
+                                                          decoration: InputDecoration(
+                                                            labelText: 'Dátum opravy',
+                                                            labelStyle: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                            ),
                                                           ),
-                                                          DropdownMenuItem(
-                                                            value: false,
-                                                            child: Text('Neopravená'),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
+                                                          readOnly: true,
+                                                          onTap: () async {
+                                                            DateTime? pickedDate = await showDatePicker(
+                                                              context: context,
+                                                              initialDate: existingRepairDate,
+                                                              firstDate: DateTime(2000),
+                                                              lastDate: DateTime(2025),
+                                                            );
+                                                  
+                                                            if (pickedDate != null) {
+                                                              String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                                              setState(() {
+                                                                _dateController.text = formattedDate;
+                                                              });
+                                                  
+                                                              TimeOfDay? pickedTime = await showTimePicker(
+                                                                context: context,
+                                                                initialTime: TimeOfDay.fromDateTime(existingRepairDate),
+                                                              );
+                                                  
+                                                              if (pickedTime != null) {
+                                                                final now = DateTime.now();
+                                                                final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+                                                                String formattedTime = DateFormat('HH:mm').format(dt);
+                                                                _repairDateController.text = '$formattedDate ($formattedTime)';
+                                                              }
+                                                            }
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                                 actions: <Widget>[
@@ -376,6 +431,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                         _dateController.text = "";
                         _descriptionController.text = "";
                         _workerController.text = "";
+                        _repairDateController.text = "";
 
                         return AlertDialog(
                           title: Text(
@@ -414,6 +470,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                       String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
                                       setState(() {
                                         _dateController.text = formattedDate;
+                                        _repairDateController.text = formattedDate;
                                       });
 
                                       TimeOfDay? pickedTime = await showTimePicker(
@@ -426,6 +483,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                         final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
                                         String formattedTime = DateFormat('HH:mm').format(dt);
                                         _dateController.text = '$formattedDate ($formattedTime)';
+                                        _repairDateController.text = '$formattedDate ($formattedTime)';
                                       }
                                     }
                                   },
@@ -470,10 +528,13 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                   String date = _dateController.text;
                                   String description = _descriptionController.text;
                                   String worker = _workerController.text;
+                                  String repairDate = _repairDateController.text;
 
                                   try {
                                     DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
+                                    DateTime parsedDate2 = DateFormat('dd. MM. yyyy (HH:mm)').parse(repairDate);
                                     Timestamp timestamp = Timestamp.fromDate(parsedDate);
+                                    Timestamp timestamp2 = Timestamp.fromDate(parsedDate2);
 
                                     await FirebaseFirestore.instance
                                         .collection('devices')
@@ -484,6 +545,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                       'description': description,
                                       'worker': worker,
                                       'isRepaired': false,
+                                      'repairDate': timestamp2,
                                     });
 
                                     Navigator.of(context).pop();
@@ -562,3 +624,4 @@ class _DeviceFaultsState extends State<DeviceFaults> {
     });
   }
 }
+

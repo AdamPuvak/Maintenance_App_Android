@@ -26,23 +26,21 @@ class _TempState extends State<Temp> {
   Future<void> copyDocuments() async {
     try {
       // ZDROJ
-      QuerySnapshot maintenancesSnapshot = await FirebaseFirestore.instance
+      QuerySnapshot partsSnapshot = await FirebaseFirestore.instance
           .collection('devices')
-          .doc('kr_man_1')
+          .doc('micro_epsilon')
           .collection('parts')
-          .doc('gwa_1')
-          .collection('maintenances')
           .get();
 
       // ZISKANIE VSETKYCH DOKUMENTOV V ZDROJI
-      for (DocumentSnapshot maintenanceSnapshot in maintenancesSnapshot.docs) {
+      for (DocumentSnapshot partSnapshot in partsSnapshot.docs) {
         // Získanie údajov zo zdrojového dokumentu
-        Map<String, dynamic> maintenanceData = maintenanceSnapshot.data() as Map<String, dynamic>;
+        Map<String, dynamic> partData = partSnapshot.data() as Map<String, dynamic>;
 
         // Prechádzanie cieľových dokumentov v kolekcii parts
         QuerySnapshot partsSnapshot = await FirebaseFirestore.instance
             .collection('devices')
-            .doc('kr_man_1')
+            .doc('micro_epsilon')
             .collection('parts')
             .get();
 
@@ -50,12 +48,10 @@ class _TempState extends State<Temp> {
           // CIEL
           await FirebaseFirestore.instance
               .collection('devices')
-              .doc('kr_man_2')
+              .doc('stojan')
               .collection('parts')
               .doc(partSnapshot.id)
-              .collection('maintenances')
-              .doc(maintenanceSnapshot.id)
-              .set(maintenanceData);
+              .set(partData);
         }
       }
     } catch (e) {

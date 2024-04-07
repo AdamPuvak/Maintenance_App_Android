@@ -82,13 +82,88 @@ class _PartMaintenanceState extends State<PartMaintenance> {
 
           SizedBox(height: 30),
 
-          Text(
-              part.name,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-              )
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(width: 30),
+              Expanded(
+                child: Text(
+                  part.name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(
+                          'Popis',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        content: FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('devices')
+                              .doc(widget.device.id)
+                              .collection('parts')
+                              .doc(widget.partId)
+                              .get(),
+                          builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                            if (snapshot.hasError) {
+                              return Text('Nastala chyba: ${snapshot.error}');
+                            }
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return CircularProgressIndicator();
+                            }
+                            if (!snapshot.hasData || snapshot.data == null) {
+                              return Text('Nenašli sa žiadne údaje');
+                            }
+                            var description = snapshot.data!['maintenance_description'] ?? 'Žiadny popis';
+                            return Text(
+                              description,
+                              style: TextStyle(
+                                fontSize: 18,
+                              ),
+                            );
+                          },
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              'Zavrieť',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: Icon(
+                  Icons.help,
+                  size: 40,
+                  color: customDarkGrey,
+                ),
+              ),
+              SizedBox(width: 30),
+            ],
           ),
+
+
 
           SizedBox(height: 10),
 
@@ -126,6 +201,8 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                         final maintenance = documents[index];
                         final date = maintenance['date'].toDate();
                         final formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(date);
+                        final creationDate = maintenance['createdAt'].toDate();
+                        final formattedCreationDate = DateFormat('dd. MM. yyyy').format(creationDate);
 
                         return Container(
                           padding: EdgeInsets.all(10),
@@ -146,12 +223,14 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                           text: TextSpan(
                                             style: DefaultTextStyle.of(context).style,
                                             children: [
-                                              TextSpan(text: 'Dátum: ', style: TextStyle(fontWeight: FontWeight.bold,)),
+                                              TextSpan(text: 'Dátum údržby: ', style: TextStyle(fontWeight: FontWeight.bold,)),
                                               TextSpan(text: '$formattedDate\n'),
                                               TextSpan(text: 'Popis: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                               TextSpan(text: '${maintenance['description']}\n'),
                                               TextSpan(text: 'Pracovník: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                              TextSpan(text: '${maintenance['worker']}'),
+                                              TextSpan(text: '${maintenance['worker']}\n'),
+                                              TextSpan(text: 'Zaznamenané: ', style: TextStyle(fontSize: 13)),
+                                              TextSpan(text: '$formattedCreationDate'),
                                             ],
                                           ),
                                         ),
@@ -188,7 +267,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                                       TextFormField(
                                                         controller: _dateController,
                                                         decoration: InputDecoration(
-                                                          labelText: 'Dátum',
+                                                          labelText: 'Dátum údržby',
                                                           labelStyle: TextStyle(
                                                             fontWeight: FontWeight.bold,
                                                             fontSize: 18,
@@ -390,7 +469,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                               TextFormField(
                                 controller: _dateController,
                                 decoration: InputDecoration(
-                                  labelText: 'Dátum',
+                                  labelText: 'Dátum údržby',
                                   labelStyle: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
@@ -470,6 +549,9 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                   DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
                                   Timestamp timestamp = Timestamp.fromDate(parsedDate);
 
+                                  DateTime now = DateTime.now();
+                                  Timestamp createdAt = Timestamp.fromDate(now);
+
                                   await FirebaseFirestore.instance
                                       .collection('devices')
                                       .doc(widget.device.id)
@@ -480,6 +562,7 @@ class _PartMaintenanceState extends State<PartMaintenance> {
                                     'date': timestamp,
                                     'description': description,
                                     'worker': worker,
+                                    'createdAt': createdAt,
                                   });
 
                                   Navigator.of(context).pop();
@@ -550,7 +633,6 @@ class _PartMaintenanceState extends State<PartMaintenance> {
         Part fetchedPart = Part(
           id: documentSnapshot.id,
           name: documentSnapshot['name'],
-          imageUrl: documentSnapshot['imageUrl'],
           maintDescription: documentSnapshot['maintenance_description'],
           maintDays: documentSnapshot['maintenance_period_days'],
           maintHours: documentSnapshot['maintenance_period_hours'],
