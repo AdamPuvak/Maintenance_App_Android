@@ -11,7 +11,7 @@ class DeviceFaults extends StatefulWidget {
 
   const DeviceFaults({
     super.key,
-    this.device
+    this.device,
   });
 
   @override
@@ -23,8 +23,27 @@ class _DeviceFaultsState extends State<DeviceFaults> {
   TextEditingController _repairDateController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _workerController = TextEditingController();
+
+  String? category;
+  String? code;
+
   bool isRepaired = false;
   bool _isDateErrorVisible = false;
+
+  Map<String, List<String>> codeCategories = {
+    'Pohon, transporty': ['101 porucha mototra', '102 porucha brzdy', '103 porucha čerpadla', '103 porucha dopravníka', '103 porucha držiaku'],
+    'Hydraulika': ['201 porucha čerpadla', '202 porucha držiaku', '203 porucha elektroventilu', '204 porucha filtra', '205 porucha hadice'],
+    'Pneumatika': ['302 porucha elektroventilu', '303 porucha hadice', '305 porucha chladenia', '306 porucha klapky', '307 porucha prívodu vzduchu'],
+    'Nosič náradia': ['401 porucha diarole', '402 porucha držiaku', '405 porucha nakladača', '407 porucha nosiča', '408 porucha obmedzovača'],
+    'Riadiace jednotky-elektronika': ['501 porucha elektromagnetu', '502 porucha elektroniky', '503 porucha elektroventilu', '504 porucha hlukomera', '505 porucha chladenia'],
+  };
+
+  String? _selectedDate;
+  String _description = '';
+  String _worker = '';
+  String? _selectedRepairDate;
+  bool? _selectedState;
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +86,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
           ),
 
           SizedBox(height: 30),
-          
+
           Container(
             height: 400,
             width: 380,
@@ -129,6 +148,8 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                               TextSpan(text: '${fault['description']}\n'),
                                               TextSpan(text: 'Pracovník: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                               TextSpan(text: '${fault['worker']}\n'),
+                                              TextSpan(text: 'Kód poruchy: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                              TextSpan(text: '${fault['category']} - ${fault['code']}\n'),
                                               TextSpan(text: 'Stav: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                               TextSpan(
                                                 text: fault['isRepaired'] ? 'Opravená' : 'Neopravená',
@@ -151,6 +172,8 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                   IconButton(
                                     icon: Icon(Icons.edit),
                                     onPressed: () {
+                                      category = fault['category'];
+                                      code = fault['code'];
                                       showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
@@ -160,241 +183,302 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                                               String formattedDate = DateFormat('dd. MM. yyyy (HH:mm)').format(existingDate);
                                               String existingDescription = fault['description'];
                                               String existingWorker = fault['worker'];
+
                                               isRepaired = fault['isRepaired'];
 
-                                              DateTime existingRepairDate = fault['date'].toDate();;
-                                              if(fault['repairDate'] != ""){
-                                                existingRepairDate = fault['repairDate'].toDate();
-                                                String formattedRepairDate = DateFormat('dd. MM. yyyy').format(existingRepairDate);
-                                                _repairDateController.text = formattedRepairDate;
-                                              }
+                                              DateTime existingRepairDate = fault['repairDate'].toDate();
+                                              String formattedRepairDate = DateFormat('dd. MM. yyyy (HH:mm)').format(existingRepairDate);
+                                              _repairDateController.text = formattedRepairDate;
 
                                               _dateController.text = formattedDate;
                                               _descriptionController.text = existingDescription;
                                               _workerController.text = existingWorker;
 
-                                              return AlertDialog(
-                                                title: Text('Upraviť záznam'),
-                                                content: SingleChildScrollView(
-                                                  child: Container(
-                                                    width: 300,
-                                                    height: 350,
-                                                    child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: <Widget>[
-                                                        TextFormField(
-                                                          controller: _dateController,
-                                                          decoration: InputDecoration(
-                                                            labelText: 'Dátum',
-                                                            labelStyle: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 18,
+                                              return WillPopScope(
+                                                onWillPop: () async {
+                                                  setState(() {
+                                                    category = null;
+                                                    code = null;
+                                                  });
+                                                  return true;
+                                                },
+                                                child: AlertDialog(
+                                                  title: Text('Upraviť záznam'),
+                                                  content: SingleChildScrollView(
+                                                    child: Container(
+                                                      width: 300,
+                                                      height: 350,
+                                                      child: ListView(
+                                                        shrinkWrap: true,
+                                                        children: <Widget>[
+                                                          TextFormField(
+                                                            controller: _dateController,
+                                                            decoration: InputDecoration(
+                                                              labelText: 'Dátum',
+                                                              labelStyle: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                              ),
                                                             ),
-                                                          ),
-                                                          readOnly: true,
-                                                          onTap: () async {
-                                                            DateTime? pickedDate = await showDatePicker(
-                                                              context: context,
-                                                              initialDate: existingDate,
-                                                              firstDate: DateTime(2000),
-                                                              lastDate: DateTime(2025),
-                                                            );
-                                                  
-                                                            if (pickedDate != null) {
-                                                              String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
-                                                              setState(() {
-                                                                _dateController.text = formattedDate;
-                                                              });
-                                                  
-                                                              TimeOfDay? pickedTime = await showTimePicker(
+                                                            readOnly: true,
+                                                            onTap: () async {
+                                                              DateTime? pickedDate = await showDatePicker(
                                                                 context: context,
-                                                                initialTime: TimeOfDay.fromDateTime(existingDate),
+                                                                initialDate: existingDate,
+                                                                firstDate: DateTime(2000),
+                                                                lastDate: DateTime(2025),
                                                               );
-                                                  
-                                                              if (pickedTime != null) {
-                                                                final now = DateTime.now();
-                                                                final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
-                                                                String formattedTime = DateFormat('HH:mm').format(dt);
-                                                                _dateController.text = '$formattedDate ($formattedTime)';
+
+                                                              if (pickedDate != null) {
+                                                                String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                                                setState(() {
+                                                                  _dateController.text = formattedDate;
+                                                                });
+
+                                                                TimeOfDay? pickedTime = await showTimePicker(
+                                                                  context: context,
+                                                                  initialTime: TimeOfDay.fromDateTime(existingDate),
+                                                                );
+
+                                                                if (pickedTime != null) {
+                                                                  final now = DateTime.now();
+                                                                  final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+                                                                  String formattedTime = DateFormat('HH:mm').format(dt);
+                                                                  _dateController.text = '$formattedDate ($formattedTime)';
+                                                                }
                                                               }
-                                                            }
-                                                          },
-                                                        ),
-                                                        TextField(
-                                                          controller: _descriptionController,
-                                                          decoration: InputDecoration(
-                                                            labelText: 'Popis',
-                                                            labelStyle: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 18,
+                                                            },
+                                                          ),
+                                                          TextField(
+                                                            controller: _descriptionController,
+                                                            decoration: InputDecoration(
+                                                              labelText: 'Popis',
+                                                              labelStyle: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                              ),
                                                             ),
                                                           ),
-                                                        ),
-                                                        TextField(
-                                                          controller: _workerController,
-                                                          decoration: InputDecoration(
-                                                            labelText: 'Pracovník',
-                                                            labelStyle: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 18,
+                                                          TextField(
+                                                            controller: _workerController,
+                                                            decoration: InputDecoration(
+                                                              labelText: 'Pracovník',
+                                                              labelStyle: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                              ),
                                                             ),
                                                           ),
-                                                        ),
-                                                        DropdownButtonFormField<bool>(
-                                                          decoration: InputDecoration(
-                                                            labelText: 'Stav',
-                                                            labelStyle: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 18,
+
+                                                          DropdownButtonFormField<String>(
+                                                            decoration: InputDecoration(
+                                                              labelText: 'Kategória',
+                                                              labelStyle: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                              ),
                                                             ),
-                                                          ),
-                                                          value: isRepaired,
-                                                          onChanged: (newValue) {
-                                                            isRepaired = newValue!;
-                                                            updateIsRepaired(newValue);
-                                                          },
-                                                          items: [
-                                                            DropdownMenuItem(
-                                                              value: true,
-                                                              child: Text('Opravená'),
-                                                            ),
-                                                            DropdownMenuItem(
-                                                              value: false,
-                                                              child: Text('Neopravená'),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        TextFormField(
-                                                          controller: _repairDateController,
-                                                          decoration: InputDecoration(
-                                                            labelText: 'Dátum opravy',
-                                                            labelStyle: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 18,
-                                                            ),
-                                                          ),
-                                                          readOnly: true,
-                                                          onTap: () async {
-                                                            DateTime? pickedDate = await showDatePicker(
-                                                              context: context,
-                                                              initialDate: existingRepairDate,
-                                                              firstDate: DateTime(2000),
-                                                              lastDate: DateTime(2025),
-                                                            );
-                                                  
-                                                            if (pickedDate != null) {
-                                                              String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                                            value: category,
+                                                            onChanged: (newValue) {
                                                               setState(() {
-                                                                _dateController.text = formattedDate;
+                                                                category = newValue!;
+                                                                code = null;
                                                               });
-                                                  
-                                                              TimeOfDay? pickedTime = await showTimePicker(
-                                                                context: context,
-                                                                initialTime: TimeOfDay.fromDateTime(existingRepairDate),
+                                                            },
+                                                            items: codeCategories.keys.map<DropdownMenuItem<String>>((String value) {
+                                                              return DropdownMenuItem<String>(
+                                                                value: value,
+                                                                child: Text(value),
                                                               );
-                                                  
-                                                              if (pickedTime != null) {
-                                                                final now = DateTime.now();
-                                                                final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
-                                                                String formattedTime = DateFormat('HH:mm').format(dt);
-                                                                _repairDateController.text = '$formattedDate ($formattedTime)';
+                                                            }).toList(),
+                                                          ),
+                                                          DropdownButtonFormField<String>(
+                                                            decoration: InputDecoration(
+                                                              labelText: 'Kód',
+                                                              labelStyle: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                              ),
+                                                            ),
+                                                            value: code,
+                                                            onChanged: (newValue) {
+                                                              setState(() {
+                                                                code = newValue!;
+                                                              });
+                                                            },
+                                                            items: codeCategories[category]?.map<DropdownMenuItem<String>>((String value) {
+                                                              return DropdownMenuItem<String>(
+                                                                value: value,
+                                                                child: Text(value),
+                                                              );
+                                                            }).toList(),
+                                                          ),
+
+                                                          DropdownButtonFormField<bool>(
+                                                            decoration: InputDecoration(
+                                                              labelText: 'Stav',
+                                                              labelStyle: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                              ),
+                                                            ),
+                                                            value: isRepaired,
+                                                            onChanged: (newValue) {
+                                                              isRepaired = newValue!;
+                                                              updateIsRepaired(newValue);
+                                                            },
+                                                            items: [
+                                                              DropdownMenuItem(
+                                                                value: true,
+                                                                child: Text('Opravená'),
+                                                              ),
+                                                              DropdownMenuItem(
+                                                                value: false,
+                                                                child: Text('Neopravená'),
+                                                              ),
+                                                            ],
+                                                          ),
+
+                                                          TextFormField(
+                                                            controller: _repairDateController,
+                                                            decoration: InputDecoration(
+                                                              labelText: 'Dátum opravy',
+                                                              labelStyle: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                              ),
+                                                            ),
+                                                            readOnly: true,
+                                                            onTap: () async {
+                                                              DateTime? pickedDate = await showDatePicker(
+                                                                context: context,
+                                                                initialDate: existingRepairDate,
+                                                                firstDate: DateTime(2000),
+                                                                lastDate: DateTime(2025),
+                                                              );
+
+                                                              if (pickedDate != null) {
+                                                                String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                                                setState(() {
+                                                                  _repairDateController.text = formattedDate;
+                                                                });
+
+                                                                TimeOfDay? pickedTime = await showTimePicker(
+                                                                  context: context,
+                                                                  initialTime: TimeOfDay.fromDateTime(existingRepairDate),
+                                                                );
+
+                                                                if (pickedTime != null) {
+                                                                  final now = DateTime.now();
+                                                                  final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+                                                                  String formattedTime = DateFormat('HH:mm').format(dt);
+                                                                  _repairDateController.text = '$formattedDate ($formattedTime)';
+                                                                }
                                                               }
-                                                            }
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    onPressed: () async {
-                                                      try {
-                                                        await FirebaseFirestore.instance
-                                                            .collection('devices')
-                                                            .doc(widget.device.id)
-                                                            .collection('faults')
-                                                            .doc(fault.id)
-                                                            .delete();
+                                                            },
+                                                          ),
 
-                                                        await refreshData();
-
-                                                        Navigator.of(context).pop();
-
-                                                      } catch (error) {
-                                                        print('Chyba při mazání záznamu: $error');
-                                                      }
-                                                    },
-                                                    style: TextButton.styleFrom(
-                                                      backgroundColor: Colors.red,
-                                                      minimumSize: Size(100, 50),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(10),
-                                                        side: BorderSide(color: Colors.black),
+                                                        ],
                                                       ),
                                                     ),
-                                                    child: Text(
-                                                      'Vymazať',
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: Colors.white,
-                                                        fontWeight: FontWeight.bold,
+                                                  ),
+                                                  actions: <Widget>[
+                                                    TextButton(
+                                                      onPressed: () async {
+                                                        try {
+                                                          await FirebaseFirestore.instance
+                                                              .collection('devices')
+                                                              .doc(widget.device.id)
+                                                              .collection('faults')
+                                                              .doc(fault.id)
+                                                              .delete();
+
+                                                          await refreshData();
+
+                                                          Navigator.of(context).pop();
+
+                                                        } catch (error) {
+                                                          print('Chyba při mazání záznamu: $error');
+                                                        }
+                                                      },
+                                                      style: TextButton.styleFrom(
+                                                        backgroundColor: Colors.red,
+                                                        minimumSize: Size(100, 50),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(10),
+                                                          side: BorderSide(color: Colors.black),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        'Vymazať',
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
 
-                                                  TextButton(
-                                                    onPressed: () async {
-                                                      setState(() {
-                                                        _isDateErrorVisible = false;
-                                                      });
-                                                      String date = _dateController.text;
-                                                      String description = _descriptionController.text;
-                                                      String worker = _workerController.text;
-
-                                                      try {
-                                                        DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
-                                                        Timestamp timestamp = Timestamp.fromDate(parsedDate);
-
-                                                        await FirebaseFirestore.instance
-                                                            .collection('devices')
-                                                            .doc(widget.device.id)
-                                                            .collection('faults')
-                                                            .doc(fault.id)
-                                                            .update({
-                                                          'date': timestamp,
-                                                          'description': description,
-                                                          'worker': worker,
-                                                          'isRepaired': isRepaired,
+                                                    TextButton(
+                                                      onPressed: () async {
+                                                        setState(() {
+                                                          _isDateErrorVisible = false;
                                                         });
+                                                        String date = _dateController.text;
+                                                        String description = _descriptionController.text;
+                                                        String worker = _workerController.text;
+                                                        String repairDate = _repairDateController.text;
 
-                                                        Navigator.of(context).pop();
+                                                        try {
+                                                          DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
+                                                          Timestamp timestamp = Timestamp.fromDate(parsedDate);
+                                                          DateTime parsedDate2 = DateFormat('dd. MM. yyyy (HH:mm)').parse(repairDate);
+                                                          Timestamp timestamp2 = Timestamp.fromDate(parsedDate2);
 
-                                                        await refreshData();
+                                                          await FirebaseFirestore.instance
+                                                              .collection('devices')
+                                                              .doc(widget.device.id)
+                                                              .collection('faults')
+                                                              .doc(fault.id)
+                                                              .update({
+                                                            'date': timestamp,
+                                                            'description': description,
+                                                            'worker': worker,
+                                                            'category': category,
+                                                            'code': code,
+                                                            'isRepaired': isRepaired,
+                                                            'repairDate': timestamp2,
+                                                          });
+                                                          Navigator.of(context).pop();
 
-                                                      } catch (error) {
-                                                        print('Chyba pri aktualizácií záznamu: $error');
-                                                      }
-                                                    },
-                                                    style: TextButton.styleFrom(
-                                                      backgroundColor: customYellow,
-                                                      minimumSize: Size(100, 50),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(10),
-                                                        side: BorderSide(color: Colors.black),
+                                                          await refreshData();
+
+                                                        } catch (error) {
+                                                          print('Chyba pri aktualizácií záznamu: $error');
+                                                        }
+                                                        category = null;
+                                                        code = null;
+                                                      },
+                                                      style: TextButton.styleFrom(
+                                                        backgroundColor: customYellow,
+                                                        minimumSize: Size(100, 50),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(10),
+                                                          side: BorderSide(color: Colors.black),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        'Uložiť',
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          color: customDarkGrey,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
                                                       ),
                                                     ),
-                                                    child: Text(
-                                                      'Uložiť',
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: customDarkGrey,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
 
-                                                ],
+                                                  ],
+                                                ),
                                               );
                                             },
                                           );
@@ -428,153 +512,220 @@ class _DeviceFaultsState extends State<DeviceFaults> {
                 builder: (BuildContext context) {
                   return StatefulBuilder(
                       builder: (BuildContext context, StateSetter setState) {
-                        _dateController.text = "";
-                        _descriptionController.text = "";
-                        _workerController.text = "";
-                        _repairDateController.text = "";
+                        _dateController.text = _selectedDate ?? '';
+                        _descriptionController.text = _description;
+                        _workerController.text = _worker;
 
-                        return AlertDialog(
-                          title: Text(
-                            'Nová porucha',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                        return WillPopScope(
+                          onWillPop: () async {
+                            setState(() {
+                              category = null;
+                              code = null;
+                              _selectedDate = null;
+                              _description = '';
+                              _worker = '';
+                            });
+                            return true;
+                          },
+                          child: AlertDialog(
+                            title: Text(
+                              'Nová porucha',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                          
                             ),
-
-                          ),
-                          content: Container(
-                            width: 300,
-                            height: 300,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                TextFormField(
-                                  controller: _dateController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Dátum',
-                                    labelStyle: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
+                            content: SingleChildScrollView(
+                              child: Container(
+                                width: 300,
+                                height: 400,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    TextFormField(
+                                      controller: _dateController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Dátum',
+                                        labelStyle: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                        errorText: _isDateErrorVisible ? 'Musíte zadať dátum a čas' : null,
+                                      ),
+                                      readOnly: true,
+                                      onTap: () async {
+                                        DateTime? pickedDate = await showDatePicker(
+                                          context: context,
+                                          initialDate: _selectedDate != null ? DateFormat('dd. MM. yyyy').parse(_selectedDate!) : DateTime.now(),
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2025),
+                                        );
+                                                        
+                                        if (pickedDate != null) {
+                                          String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
+                                          setState(() {
+                                            _dateController.text = formattedDate;
+                                            _selectedDate = formattedDate;
+                                          });
+                                                        
+                                          TimeOfDay? pickedTime = await showTimePicker(
+                                            context: context,
+                                            initialTime: TimeOfDay.now(),
+                                          );
+                                                        
+                                          if (pickedTime != null) {
+                                            final now = DateTime.now();
+                                            final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
+                                            String formattedTime = DateFormat('HH:mm').format(dt);
+                                            _dateController.text = '$formattedDate ($formattedTime)';
+                                            _selectedDate  = '$formattedDate ($formattedTime)';
+                                          }
+                                        }
+                                      },
                                     ),
-                                    errorText: _isDateErrorVisible ? 'Musíte zadať dátum a čas' : null,
-                                  ),
-                                  readOnly: true,
-                                  onTap: () async {
-                                    DateTime? pickedDate = await showDatePicker(
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime(2025),
-                                    );
-
-                                    if (pickedDate != null) {
-                                      String formattedDate = DateFormat('dd. MM. yyyy').format(pickedDate);
-                                      setState(() {
-                                        _dateController.text = formattedDate;
-                                        _repairDateController.text = formattedDate;
-                                      });
-
-                                      TimeOfDay? pickedTime = await showTimePicker(
-                                        context: context,
-                                        initialTime: TimeOfDay.now(),
-                                      );
-
-                                      if (pickedTime != null) {
-                                        final now = DateTime.now();
-                                        final dt = DateTime(now.year, now.month, now.day, pickedTime.hour, pickedTime.minute);
-                                        String formattedTime = DateFormat('HH:mm').format(dt);
-                                        _dateController.text = '$formattedDate ($formattedTime)';
-                                        _repairDateController.text = '$formattedDate ($formattedTime)';
-                                      }
-                                    }
-                                  },
-                                ),
-
-                                TextField(
-                                  controller: _descriptionController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Popis',
-                                    labelStyle: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
+                                                        
+                                    TextField(
+                                      controller: _descriptionController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Popis',
+                                        labelStyle: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      onChanged: (value) {
+                                        _description = value;
+                                      },
                                     ),
-                                  ),
-                                ),
-
-                                TextField(
-                                  controller: _workerController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Pracovník',
-                                    labelStyle: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
+                                                        
+                                    TextField(
+                                      controller: _workerController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Pracovník',
+                                        labelStyle: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      onChanged: (value) {
+                                        _worker = value;
+                                      },
                                     ),
-                                  ),
+                                                        
+                                    // TODO: implement select
+                                    DropdownButtonFormField<String>(
+                                      decoration: InputDecoration(
+                                        labelText: 'Kategória',
+                                        labelStyle: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      value: category,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          category = newValue!;
+                                        });
+                                      },
+                                      items: codeCategories.keys.map<DropdownMenuItem<String>>((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    DropdownButtonFormField<String>(
+                                      decoration: InputDecoration(
+                                        labelText: 'Kód',
+                                        labelStyle: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      value: code,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          code = newValue!;
+                                        });
+                                      },
+                                      items: codeCategories[category]?.map<DropdownMenuItem<String>>((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                    ),
+                                                        
+                                  ],
                                 ),
-
-                              ],
+                              ),
                             ),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () async {
-                                if (_dateController.text.isEmpty) {
-                                  setState(() {
-                                    _isDateErrorVisible = true;
-                                  });
-                                } else {
-                                  setState(() {
-                                    _isDateErrorVisible = false;
-                                  });
-                                  String date = _dateController.text;
-                                  String description = _descriptionController.text;
-                                  String worker = _workerController.text;
-                                  String repairDate = _repairDateController.text;
-
-                                  try {
-                                    DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
-                                    DateTime parsedDate2 = DateFormat('dd. MM. yyyy (HH:mm)').parse(repairDate);
-                                    Timestamp timestamp = Timestamp.fromDate(parsedDate);
-                                    Timestamp timestamp2 = Timestamp.fromDate(parsedDate2);
-
-                                    await FirebaseFirestore.instance
-                                        .collection('devices')
-                                        .doc(widget.device.id)
-                                        .collection('faults')
-                                        .add({
-                                      'date': timestamp,
-                                      'description': description,
-                                      'worker': worker,
-                                      'isRepaired': false,
-                                      'repairDate': timestamp2,
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () async {
+                                  if (_dateController.text.isEmpty) {
+                                    setState(() {
+                                      _isDateErrorVisible = true;
                                     });
-
-                                    Navigator.of(context).pop();
-
-                                    await refreshData();
-
-                                  } catch (error) {
-                                    print('Chyba pri vytváraní záznamu: $error');
+                                  } else {
+                                    setState(() {
+                                      _isDateErrorVisible = false;
+                                    });
+                                    String date = _dateController.text;
+                                    String description = _descriptionController.text;
+                                    String worker = _workerController.text;
+                          
+                                    try {
+                                      DateTime parsedDate = DateFormat('dd. MM. yyyy (HH:mm)').parse(date);
+                                      Timestamp timestamp = Timestamp.fromDate(parsedDate);
+                          
+                                      await FirebaseFirestore.instance
+                                          .collection('devices')
+                                          .doc(widget.device.id)
+                                          .collection('faults')
+                                          .add({
+                                        'date': timestamp,
+                                        'description': description,
+                                        'worker': worker,
+                                        'category': category,
+                                        'code': code,
+                                        'isRepaired': false,
+                                        'repairDate': timestamp,
+                                      });
+                          
+                                      Navigator.of(context).pop();
+                          
+                                      await refreshData();
+                          
+                                    } catch (error) {
+                                      print('Chyba pri vytváraní záznamu: $error');
+                                    }
+                                    category = null;
+                                    code = null;
+                                    _selectedDate = null;
+                                    _description = '';
+                                    _worker = '';
                                   }
-                                }
-                              },
-                              style: TextButton.styleFrom(
-                                backgroundColor: customYellow,
-                                minimumSize: Size(100, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: BorderSide(color: Colors.black),
+                                },
+                                style: TextButton.styleFrom(
+                                  backgroundColor: customYellow,
+                                  minimumSize: Size(100, 50),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(color: Colors.black),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Uložiť',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: customDarkGrey,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                              child: Text(
-                                'Uložiť',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: customDarkGrey,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         );
                       }
                   );
@@ -590,7 +741,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              primary: customYellow,
+              backgroundColor: customYellow,
               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 35),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -605,7 +756,7 @@ class _DeviceFaultsState extends State<DeviceFaults> {
 
   Future<void> refreshData() async {
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('devices')
           .doc(widget.device.id)
           .collection('faults')
