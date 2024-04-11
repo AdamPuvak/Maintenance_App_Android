@@ -114,64 +114,6 @@ class SchedulePage extends StatelessWidget {
       ),
     );
   }
-
-  /*Future<Device?> getDeviceByName(String deviceName) async {
-    QuerySnapshot deviceSnapshot = await FirebaseFirestore.instance
-        .collection('devices')
-        .where('name', isEqualTo: deviceName)
-        .limit(1)
-        .get();
-    if (deviceSnapshot.docs.isNotEmpty) {
-      var deviceData = deviceSnapshot.docs.first.data();
-      if (deviceData != null) {
-        Map<String, dynamic> deviceMap = deviceData as Map<String, dynamic>;
-        String id = deviceData['id'] ?? '';
-        String name = deviceData['name'] ?? '';
-        String imageUrl = deviceData['imageUrl'] ?? '';
-        String info1 = deviceData['info1'] ?? '';
-        String info2 = deviceData['info2'] ?? '';
-        String info3 = deviceData['info3'] ?? '';
-
-        if (id.isNotEmpty || name.isNotEmpty || imageUrl.isNotEmpty || info1.isNotEmpty || info2.isNotEmpty || info3.isNotEmpty) {
-          return Device(
-            id: id,
-            name: name,
-            imageUrl: imageUrl,
-            info1: info1,
-            info2: info2,
-            info3: info3,
-          );
-        }
-      }
-      return null;
-
-    } else {
-      return null;
-    }
-  }*/
-
-  /*Future<String?> getPartIdByName(Device device, String partName) async {
-    String deviceId = device.id;
-    QuerySnapshot partsSnapshot = await FirebaseFirestore.instance
-        .collection('devices')
-        .doc(deviceId)
-        .collection('parts')
-        .where('name', isEqualTo: partName)
-        .limit(1)
-        .get();
-
-    if (partsSnapshot.docs.isNotEmpty) {
-      var partData = partsSnapshot.docs.first.data();
-      if (partData != null) {
-        Map<String, dynamic> partMap = partData as Map<String, dynamic>;
-        return partData['id'];
-      }
-      return null;
-    } else {
-      return null;
-    }
-  }*/
-
 }
 
 Future<List<MaintenanceRecord>> loadMaintenanceData() async {
