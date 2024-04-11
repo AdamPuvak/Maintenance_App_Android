@@ -4,7 +4,7 @@ import '../PAGE-(devices)/devices_page.dart';
 import '../app-bar/customAppBar.dart';
 import '/utilities/globalVar.dart';
 import 'customIconButton.dart';
-import '/main_pages/schedule_page.dart';
+import '../PAGE-(schedule)/schedule_page.dart';
 import '/main_pages/records_page.dart';
 import '/main_pages/manual_page.dart';
 
