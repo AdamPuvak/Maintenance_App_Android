@@ -47,19 +47,22 @@ class _RecordsFaultsState extends State<RecordsFaults> {
                   scrollDirection: Axis.vertical,
                   child: Container(
                     margin: EdgeInsets.all(8.0),
+                    padding: EdgeInsets.all(4.0),
                     height: MediaQuery.of(context).size.height * 0.7,
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: customDarkGrey,
                         width: 3.0,
                       ),
+                      color: Color.fromRGBO(255, 87, 51, 0.6),
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: ListView.builder(
                       itemCount: faultsArray.length > 15 ? 15 : faultsArray.length,
                       itemBuilder: (context, index) {
                         var fault = faultsArray[index];
                         return Card(
-                          elevation: 3,
+                          elevation: 8,
                           margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
@@ -86,6 +89,7 @@ class _RecordsFaultsState extends State<RecordsFaults> {
                                               Text(
                                                 DateFormat('dd. MM. yyyy (HH:mm)').format(fault['date']),
                                                 style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
                                                   color: customDarkGrey,
                                                 ),
                                               ),
@@ -214,7 +218,7 @@ class _RecordsFaultsState extends State<RecordsFaults> {
       faultsArray.sort((a, b) {
         DateTime dateA = a['date'] as DateTime;
         DateTime dateB = b['date'] as DateTime;
-        return dateA.compareTo(dateB);
+        return dateB.compareTo(dateA);
       });
 
       setState(() {
