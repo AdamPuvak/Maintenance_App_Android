@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '/utilities/globalVar.dart';
 import '../PAGE-(home)/home_page.dart';
-import 'notifications_page.dart';
 import 'settings_page.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -9,6 +8,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(70.0);
+
 
   @override
   Widget build(BuildContext context) {
@@ -48,26 +48,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       centerTitle: true,
-
-      actions: [
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => NotificationsPage()),
-            );
-          },
-          child: Container(
-            padding: EdgeInsets.all(8.0),
-            margin: EdgeInsets.fromLTRB(10.0, 5.0, 0, 0),
-            child: const Icon(
-              Icons.announcement,
-              color: customYellow,
-              size: 35.0,
-            ),
-          ),
-        ),
-      ],
 
     );
   }

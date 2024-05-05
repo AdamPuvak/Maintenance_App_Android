@@ -6,7 +6,7 @@ import '/utilities/globalVar.dart';
 import 'customIconButton.dart';
 import '../PAGE-(schedule)/schedule_page.dart';
 import '../PAGE-(records)/records_page.dart';
-import '/main_pages/manual_page.dart';
+import '../PAGE-(manual)/manual_page.dart';
 
 
 class HomePage extends StatelessWidget {

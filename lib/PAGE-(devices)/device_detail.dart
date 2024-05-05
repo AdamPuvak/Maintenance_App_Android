@@ -161,7 +161,8 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
           SizedBox(height: 15,),
 
-          ActionPlate(text1: "OPRAVY",
+          ActionPlate(
+              text1: "OPRAVY",
               text2: "", icon: Icons.build,
               color: Colors.green,
               locationPage: () => DeviceRepairs(device: this.widget.device,)

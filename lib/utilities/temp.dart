@@ -19,45 +19,70 @@ class _TempState extends State<Temp> {
   void initState() {
     super.initState();
     //loadDevices();
-    //copyDocuments();
+    copyDocuments();
+    //deleteDocuments();
     //deleteMaintenances();
   }
 
   Future<void> copyDocuments() async {
     try {
+      // Získanie snapshotu pôvodnej kolekcie 'parts' z dokumentu 'kr_man_1'
+      QuerySnapshot originalnaKolekcia = await FirebaseFirestore.instance
+          .collection('devices')
+          .doc('kr_man_1')
+          .collection('parts')
+          .get();
+
+      // Pripravenie batch operácie pre efektívnejšie kopírovanie
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+
+      // Iterácia cez každý dokument v pôvodnej kolekcii
+      for (DocumentSnapshot dokument in originalnaKolekcia.docs) {
+        DocumentReference novaReferencia = FirebaseFirestore.instance
+            .collection('devices')
+            .doc('kr_zvar')
+            .collection('parts')
+            .doc(dokument.id);  // Používame rovnaké ID dokumentu pre nový dokument
+
+        // Pridanie operácie kopírovania do batchu
+        batch.set(novaReferencia, dokument.data() as Map<String, dynamic>);
+      }
+
+      // Vykonanie všetkých operácií v batchi
+      await batch.commit();
+
+      print('Všetky dokumenty boli úspešne skopírované.');
+    } catch (e) {
+      print('Chyba pri kopírovaní dokumentov: $e');
+    }
+  }
+
+  Future<void> deleteDocuments() async {
+    try {
       // ZDROJ
       QuerySnapshot partsSnapshot = await FirebaseFirestore.instance
           .collection('devices')
-          .doc('micro_epsilon')
+          .doc('kr_zvar')
           .collection('parts')
           .get();
 
       // ZISKANIE VSETKYCH DOKUMENTOV V ZDROJI
+      var batch = FirebaseFirestore.instance.batch(); // Create a batch operation for efficiency
+
       for (DocumentSnapshot partSnapshot in partsSnapshot.docs) {
-        // Získanie údajov zo zdrojového dokumentu
-        Map<String, dynamic> partData = partSnapshot.data() as Map<String, dynamic>;
-
-        // Prechádzanie cieľových dokumentov v kolekcii parts
-        QuerySnapshot partsSnapshot = await FirebaseFirestore.instance
-            .collection('devices')
-            .doc('micro_epsilon')
-            .collection('parts')
-            .get();
-
-        for (DocumentSnapshot partSnapshot in partsSnapshot.docs) {
-          // CIEL
-          await FirebaseFirestore.instance
-              .collection('devices')
-              .doc('stojan')
-              .collection('parts')
-              .doc(partSnapshot.id)
-              .set(partData);
-        }
+        // Adding each document to the batch delete operation
+        batch.delete(partSnapshot.reference);
       }
+
+      // Committing the batch delete to remove all documents
+      await batch.commit();
+
+      print('All documents in parts collection have been deleted successfully.');
     } catch (e) {
-      print('Error copying maintenances: $e');
+      print('Error deleting documents: $e');
     }
   }
+
 
   Future<void> loadDevices() async {
     try {

@@ -54,7 +54,7 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
                         color: customDarkGrey,
                         width: 3.0,
                       ),
-                      color: Color.fromRGBO(76, 187, 23, 0.6),
+                      color: Color.fromRGBO(76, 187, 23, 0.3),
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: ListView.builder(
