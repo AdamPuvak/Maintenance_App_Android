@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -61,6 +64,19 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
                       itemCount: faultsArray.length > 15 ? 15 : faultsArray.length,
                       itemBuilder: (context, index) {
                         var fault = faultsArray[index];
+
+                        Widget decodedWidget = Container();
+                        if (fault['image'] != null){
+                          List<int> decodedImage = base64Decode(fault['image']);
+                          Uint8List uint8list = Uint8List.fromList(decodedImage);
+
+                          decodedWidget = Image.memory(
+                            uint8list,
+                            width: 200,
+                            height: 200,
+                          );
+                        }
+
                         return Card(
                           elevation: 8,
                           margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -86,13 +102,27 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
                                                   color: customDarkGrey,
                                                 ),
                                               ),
-                                              Text(
-                                                DateFormat('dd. MM. yyyy (HH:mm)').format(fault['date']),
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: customDarkGrey,
+
+                                              if (fault['image'] != null)
+                                                IconButton(
+                                                  icon: Icon(Icons.image),
+                                                  onPressed: () {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext context) {
+                                                        return AlertDialog(
+                                                          content: SizedBox(
+                                                            width: 300,
+                                                            height: 300,
+                                                            child: decodedWidget,
+                                                          ),
+                                                        );
+                                                      },
+                                                    );
+                                                  },
                                                 ),
-                                              ),
+                                              if (fault['image'] == null)
+                                                SizedBox(height: 40,),
                                             ],
                                           ),
                                           Divider(
@@ -104,6 +134,29 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
                                     ),
                                   ],
                                 ),
+                                if (fault['date'] != null && fault['date'] != '')
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Dátum opravy: ',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: customDarkGrey,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          DateFormat('dd. MM. yyyy (HH:mm)').format(fault['date']),
+                                          style: TextStyle(
+                                            color: customDarkGrey,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                SizedBox(height: 4),
                                 if (fault['faultDate'] != null && fault['faultDate'] != '')
                                   Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +179,7 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
                                       ),
                                     ],
                                   ),
-                                SizedBox(height: 2),
+                                SizedBox(height: 4),
                                 if (fault['description'] != null && fault['description'] != '')
                                   Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +202,7 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
                                       ),
                                     ],
                                   ),
-                                SizedBox(height: 2),
+                                SizedBox(height: 4),
                                 if (fault['worker'] != null && fault['worker'] != '')
                                   Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +225,7 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
                                       ),
                                     ],
                                   ),
-                                SizedBox(height: 2),
+                                SizedBox(height: 4),
                                 if (fault['category'] != null && fault['category'] != '' && fault['code'] != null && fault['code'] != '')
                                   Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,6 +287,7 @@ class _RecordsRepairsState extends State<RecordsRepairs> {
               'category': fault['category'],
               'code': fault['code'],
               'date': (fault['repairDate'] as Timestamp).toDate(),
+              'image': fault['image'],
             });
           }
         }

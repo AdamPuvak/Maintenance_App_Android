@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '/utilities/globalVar.dart';
 import '../PAGE-(home)/home_page.dart';
-import 'settings_page.dart';
+import '../PAGE-(settings)/settings_page.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});

@@ -5,6 +5,7 @@ import 'firebase_auth_services.dart';
 import '../PAGE-(home)/home_page.dart';
 import '/login/sign_up_page.dart';
 import '/utilities/globalVar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -25,6 +26,22 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkUserLoggedInState();
+  }
+
+  Future<void> checkUserLoggedInState() async {
+    bool isLoggedIn = await getUserLoggedInState();
+    if (isLoggedIn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    }
   }
 
   @override
@@ -71,9 +88,9 @@ class _LoginPageState extends State<LoginPage> {
 
               style: ElevatedButton.styleFrom(
                 primary: customDarkGrey,
-                padding: EdgeInsets.symmetric(horizontal: 150, vertical: 15), // rozmery
+                padding: EdgeInsets.symmetric(horizontal: 150, vertical: 15),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10), // Upravuje rohy tlačidla
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: Text(
@@ -126,23 +143,38 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _login() async {
+  Future<void> _login() async {
     String email = _emailController.text;
     String password = _passwordController.text;
 
     User? user = await _auth.signInWithEmailAndPassword(email, password);
 
     if (user != null) {
-      print("User is login successful");
-      Navigator.push(
+      print("User is logged in successfuly");
+      await saveUserLoggedInState(true); // Save user login state
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
     }
-    else{
-      print("Some error happened");
+    else {
+      print("Incorrect credentials");
+      _passwordController.clear();
+      FocusScope.of(context).unfocus();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Nesprávne prihlasovacie údaje'),
+        backgroundColor: Colors.red,
+      ));
     }
-
   }
+}
 
+Future<void> saveUserLoggedInState(bool isLoggedIn) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', isLoggedIn);
+}
+
+Future<bool> getUserLoggedInState() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool('isLoggedIn') ?? false;
 }

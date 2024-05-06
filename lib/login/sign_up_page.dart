@@ -84,12 +84,11 @@ class _SignUpPageState extends State<SignUpPage> {
 
             ElevatedButton(
               onPressed: _singUp,
-
               style: ElevatedButton.styleFrom(
                 primary: customDarkGrey,
-                padding: EdgeInsets.symmetric(horizontal: 123, vertical: 15), // rozmery
+                padding: EdgeInsets.symmetric(horizontal: 123, vertical: 15),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10), // Upravuje rohy tlačidla
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: Text(
@@ -148,19 +147,24 @@ class _SignUpPageState extends State<SignUpPage> {
     String email = _emailController.text;
     String password = _passwordController.text;
 
-    User? user = await _auth.signUpWithEmailAndPassword(email, password);
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    if (user != null) {
+      User? user = userCredential.user;
+      await user?.updateDisplayName('$name $surname');
+
       print("User is successfully created");
+
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => HomePage()),
       );
+    } catch (e) {
+      print("Error occurred: $e");
     }
-    else{
-      print("Some error happened");
-    }
-
   }
 
 }

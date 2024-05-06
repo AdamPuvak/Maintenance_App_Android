@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../PAGE-(home)/home_page.dart';
 import '/utilities/globalVar.dart';
 import '/login/login_page.dart';
 
@@ -37,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _slideAnimation = Tween<Offset>(
       begin: Offset(0, 0),
-      end: Offset(0, -0.5),
+      end: Offset(0, -0.475),
     ).animate(CurvedAnimation(parent: _controller, curve: Interval(0.7, 1.0, curve: Curves.easeInOut)));
 
     _controller.forward(); // Spustí animáciu

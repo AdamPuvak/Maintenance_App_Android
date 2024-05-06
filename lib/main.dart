@@ -31,10 +31,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Industry Hub',
       //home: WorkplacePage(),
-      home: HomePage(),
+      //home: HomePage(),
       //home: DevicesPage(),
       //home: Temp(),
-      //home: SplashScreen(),
+      home: SplashScreen(),
     );
   }
 }

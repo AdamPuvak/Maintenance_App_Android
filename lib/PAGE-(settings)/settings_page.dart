@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../login/login_page.dart';
 import '../utilities/globalVar.dart';
-import 'customAppBar.dart';
+import '../app-bar/customAppBar.dart';
 import 'edit_profile_page.dart';
+import '/login/login_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -59,6 +61,7 @@ class SettingsPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   FirebaseAuth.instance.signOut();
+                  clearUserLoggedInState();
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => LoginPage()),
@@ -66,9 +69,9 @@ class SettingsPage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   primary: customDarkGrey,
-                  padding: EdgeInsets.symmetric(horizontal: 150, vertical: 15), // rozmery
+                  padding: EdgeInsets.symmetric(horizontal: 150, vertical: 15),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // Upravuje rohy tlačidla
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 child: Text(
@@ -87,4 +90,9 @@ class SettingsPage extends StatelessWidget {
       )
     );
   }
+}
+
+Future<void> clearUserLoggedInState() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', false);
 }

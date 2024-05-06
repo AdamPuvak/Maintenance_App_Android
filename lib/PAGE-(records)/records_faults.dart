@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -57,10 +60,24 @@ class _RecordsFaultsState extends State<RecordsFaults> {
                       color: Color.fromRGBO(255, 87, 51, 0.3),
                       borderRadius: BorderRadius.circular(10.0),
                     ),
+
                     child: ListView.builder(
                       itemCount: faultsArray.length > 15 ? 15 : faultsArray.length,
                       itemBuilder: (context, index) {
                         var fault = faultsArray[index];
+
+                        Widget decodedWidget = Container();
+                        if (fault['image'] != null){
+                          List<int> decodedImage = base64Decode(fault['image']);
+                          Uint8List uint8list = Uint8List.fromList(decodedImage);
+
+                          decodedWidget = Image.memory(
+                            uint8list,
+                            width: 200,
+                            height: 200,
+                          );
+                        }
+
                         return Card(
                           elevation: 8,
                           margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -86,13 +103,27 @@ class _RecordsFaultsState extends State<RecordsFaults> {
                                                   color: customDarkGrey,
                                                 ),
                                               ),
-                                              Text(
-                                                DateFormat('dd. MM. yyyy (HH:mm)').format(fault['date']),
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: customDarkGrey,
+
+                                              if (fault['image'] != null)
+                                                IconButton(
+                                                  icon: Icon(Icons.image),
+                                                  onPressed: () {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext context) {
+                                                        return AlertDialog(
+                                                          content: SizedBox(
+                                                            width: 300,
+                                                            height: 300,
+                                                            child: decodedWidget,
+                                                          ),
+                                                        );
+                                                      },
+                                                    );
+                                                  },
                                                 ),
-                                              ),
+                                              if (fault['image'] == null)
+                                                SizedBox(height: 40,),
                                             ],
                                           ),
                                           Divider(
@@ -104,6 +135,30 @@ class _RecordsFaultsState extends State<RecordsFaults> {
                                     ),
                                   ],
                                 ),
+
+                                if (fault['date'] != null && fault['date'] != '')
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Dátum: ',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: customDarkGrey,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          DateFormat('dd. MM. yyyy (HH:mm)').format(fault['date']),
+                                          style: TextStyle(
+                                            color: customDarkGrey,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                SizedBox(height: 4),
                                 if (fault['description'] != null && fault['description'] != '')
                                   Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,6 +265,7 @@ class _RecordsFaultsState extends State<RecordsFaults> {
               'worker': fault['worker'],
               'category': fault['category'],
               'code': fault['code'],
+              'image': fault['image'],
             });
           }
         }
