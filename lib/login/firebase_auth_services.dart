@@ -26,4 +26,13 @@ class FirebaseAuthService {
     return null;
   }
 
+  Future<bool> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return true;
+    } catch (error) {
+      print('Chyba pri odosielaní emailu s resetovaním hesla: $error');
+      return false;
+    }
+  }
 }

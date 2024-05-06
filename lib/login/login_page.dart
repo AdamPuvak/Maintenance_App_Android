@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:maintenace/login/customInputField.dart';
+import 'package:maintenace/login/reset_password_page.dart';
 import 'firebase_auth_services.dart';
 import '../PAGE-(home)/home_page.dart';
 import '/login/sign_up_page.dart';
@@ -80,12 +81,10 @@ class _LoginPageState extends State<LoginPage> {
               controller: _passwordController,
               isPasswordField: true,
             ),
-
             SizedBox(height: 20,),
 
             ElevatedButton(
               onPressed: _login,
-
               style: ElevatedButton.styleFrom(
                 primary: customDarkGrey,
                 padding: EdgeInsets.symmetric(horizontal: 150, vertical: 15),
@@ -103,8 +102,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-
-            //SizedBox(height: 10,),
 
             SizedBox(height: 2,),
 
@@ -136,7 +133,24 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ],
-            )
+            ),
+
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ResetPasswordPage()),
+                );
+              },
+              child: Text(
+                'Zabudol som heslo',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey,
+                ),
+              ),
+            ),
           ],
         ),
       ),
