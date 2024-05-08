@@ -47,9 +47,6 @@ class _DeviceFaultsState extends State<DeviceFaults> {
   String? _selectedDate;
   String _description = '';
   String _worker = '';
-  String? _selectedRepairDate;
-  bool? _selectedState;
-
 
   @override
   Widget build(BuildContext context) {

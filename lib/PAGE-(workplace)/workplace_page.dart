@@ -169,7 +169,7 @@ class _WorkplacePageState extends State<WorkplacePage> {
                       ),
                     ),
                     Text(
-                      "  -  porucha + údržba",
+                      "  - porucha + údržba",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,

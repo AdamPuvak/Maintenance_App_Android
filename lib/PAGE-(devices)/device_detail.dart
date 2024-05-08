@@ -251,7 +251,7 @@ class _ActionPlateState extends State<ActionPlate> {
             ),
           ),
         ),
-        constraints: BoxConstraints(maxWidth: 400),
+        constraints: BoxConstraints(maxWidth: 370),
         child: SizedBox(
           height: 100,
           child: Row(

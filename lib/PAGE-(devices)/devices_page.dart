@@ -72,7 +72,7 @@ class _DevicesPageState extends State<DevicesPage> {
               SizedBox(height: 20),
               Expanded(
                 child: Scrollbar(
-                  thickness: 8,
+                  thickness: 6,
                   thumbVisibility: true,
                   child: ListView.builder(
                     itemCount: devices.length,
@@ -115,15 +115,19 @@ class _DevicesPageState extends State<DevicesPage> {
                                     ),
                                   ),
                                   GestureDetector(
+                                    behavior: HitTestBehavior.translucent,
                                     onTap: () {
                                       setState(() {
                                         showDetails[index] = !showDetails[index];
                                       });
                                     },
-                                    child: Icon(
-                                      Icons.arrow_downward,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(20),
+                                      child: Icon(
+                                        Icons.arrow_downward,
+                                      ),
                                     ),
-                                  ),
+                                  )
                                 ],
                               ),
 
